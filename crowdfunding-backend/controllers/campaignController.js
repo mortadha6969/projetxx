@@ -1,4 +1,5 @@
 const Campaign = require('../models/Campaign');
+const path = require('path');
 
 exports.getAllCampaigns = async (req, res) => {
   try {
@@ -13,18 +14,25 @@ exports.getAllCampaigns = async (req, res) => {
 
 exports.createCampaign = async (req, res) => {
   try {
-    const userId = req.user?.id; // Get user ID from auth middleware
+    const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const { title, description, target, imageUrl, category, endDate } = req.body;
+    const { title, description, target, category, endDate } = req.body;
 
     // Validate required fields
-    if (!title || !description || !target || !imageUrl) {
+    if (!title || !description || !target) {
       return res.status(400).json({ 
-        message: 'Missing required fields. Please provide title, description, target amount, and image URL.' 
+        message: 'Missing required fields. Please provide title, description, and target amount.' 
       });
+    }
+
+    // Handle image URL
+    let imageUrl = null;
+    if (req.file) {
+      // Convert backslashes to forward slashes for consistency
+      imageUrl = `/uploads/${req.file.filename}`.replace(/\\/g, '/');
     }
 
     const campaign = await Campaign.create({
@@ -50,18 +58,6 @@ exports.createCampaign = async (req, res) => {
   }
 };
 
-exports.getCampaignById = async (req, res) => {
-  try {
-    const campaign = await Campaign.findByPk(req.params.id);
-    if (!campaign) {
-      return res.status(404).json({ message: 'Campaign not found' });
-    }
-    res.json(campaign);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
 exports.updateCampaign = async (req, res) => {
   try {
     const campaign = await Campaign.findByPk(req.params.id);
@@ -74,7 +70,26 @@ exports.updateCampaign = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this campaign' });
     }
 
-    await campaign.update(req.body);
+    const updateData = { ...req.body };
+
+    // Handle image update if a new file is uploaded
+    if (req.file) {
+      updateData.imageUrl = `/uploads/${req.file.filename}`.replace(/\\/g, '/');
+    }
+
+    await campaign.update(updateData);
+    res.json(campaign);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getCampaignById = async (req, res) => {
+  try {
+    const campaign = await Campaign.findByPk(req.params.id);
+    if (!campaign) {
+      return res.status(404).json({ message: 'Campaign not found' });
+    }
     res.json(campaign);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -102,4 +117,78 @@ exports.deleteCampaign = async (req, res) => {
 
 exports.shareOnSocialMedia = async (req, res) => {
   res.json({ message: 'Social media sharing functionality to be implemented' });
+};
+
+exports.startNewIteration = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    
+    const currentCampaign = await Campaign.findByPk(id);
+    if (!currentCampaign) {
+      return res.status(404).json({ message: 'Campaign not found' });
+    }
+
+    // Check if user owns the campaign
+    if (currentCampaign.userId !== req.user?.id) {
+      return res.status(403).json({ message: 'Not authorized to iterate this campaign' });
+    }
+
+    // Create new iteration
+    const newCampaign = await Campaign.create({
+      title: currentCampaign.title,
+      description: currentCampaign.description,
+      target: currentCampaign.target,
+      imageUrl: currentCampaign.imageUrl,
+      category: currentCampaign.category,
+      userId: currentCampaign.userId,
+      iteration: currentCampaign.iteration + 1,
+      previousIterationId: currentCampaign.id
+    });
+
+    // Update the previous campaign
+    await currentCampaign.update({
+      iterationEndReason: reason,
+      status: 'completed'
+    });
+
+    res.status(201).json({
+      message: 'New iteration started successfully',
+      campaign: newCampaign
+    });
+  } catch (error) {
+    console.error('Error starting new iteration:', error);
+    res.status(500).json({
+      message: 'Failed to start new iteration',
+      error: error.message
+    });
+  }
+};
+
+exports.getPreviousIterations = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const campaign = await Campaign.findByPk(id);
+    
+    if (!campaign) {
+      return res.status(404).json({ message: 'Campaign not found' });
+    }
+
+    const iterations = [];
+    let currentCampaign = campaign;
+
+    while (currentCampaign.previousIterationId) {
+      const previousIteration = await Campaign.findByPk(currentCampaign.previousIterationId);
+      if (previousIteration) {
+        iterations.push(previousIteration);
+        currentCampaign = previousIteration;
+      } else {
+        break;
+      }
+    }
+
+    res.json(iterations);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };

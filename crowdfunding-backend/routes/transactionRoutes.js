@@ -2,15 +2,16 @@
 const express = require('express');
 const router = express.Router();
 const transactionController = require('../controllers/transactionController');
+const auth = require('../middleware/auth');
 
-// Récupérer toutes les transactions (normalement réservé à un admin)
-router.get('/', transactionController.getAllTransactions);
+// Get all transactions (admin only)
+router.get('/', auth, transactionController.getAllTransactions);
 
-// Récupérer une transaction
-router.get('/:id', transactionController.getTransactionById);
+// Get transaction by ID
+router.get('/:id', auth, transactionController.getTransactionById);
 
-// Simuler le process / refund
-router.post('/:id/process', transactionController.processTransaction);
-router.post('/:id/refund', transactionController.refundTransaction);
+// Process and refund transactions
+router.post('/:id/process', auth, transactionController.processTransaction);
+router.post('/:id/refund', auth, transactionController.refundTransaction);
 
 module.exports = router;

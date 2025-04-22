@@ -1,7 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const sequelize = require('./config/database');
+const path = require('path');
+const { sequelize, initializeDatabase } = require('./config/database');
 
 // ✅ Initialize Express App
 const app = express();
@@ -18,20 +19,43 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ✅ Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // ✅ Import Models
 const User = require('./models/User');
 const Campaign = require('./models/Campaign');
 const Transaction = require('./models/Transaction');
 
-// ✅ Model Associations
-User.hasMany(Campaign);
-Campaign.belongsTo(User);
+// ✅ Model Associations with cascade delete
+User.hasMany(Campaign, {
+  foreignKey: 'userId',
+  onDelete: 'CASCADE',
+  hooks: true
+});
+Campaign.belongsTo(User, {
+  foreignKey: 'userId'
+});
 
-User.hasMany(Transaction);
-Transaction.belongsTo(User, { as: 'donor' });
+User.hasMany(Transaction, {
+  foreignKey: 'donorId',
+  as: 'donations',
+  onDelete: 'CASCADE',
+  hooks: true
+});
+Transaction.belongsTo(User, {
+  foreignKey: 'donorId',
+  as: 'donor'
+});
 
-Campaign.hasMany(Transaction);
-Transaction.belongsTo(Campaign);
+Campaign.hasMany(Transaction, {
+  foreignKey: 'campaignId',
+  onDelete: 'CASCADE',
+  hooks: true
+});
+Transaction.belongsTo(Campaign, {
+  foreignKey: 'campaignId'
+});
 
 // ✅ Import Routes
 const userRoutes = require('./routes/userRoutes');
@@ -60,10 +84,13 @@ app.use((req, res) => {
 // ✅ Database Sync and Server Start
 const startServer = async () => {
   try {
+    // Initialize the database connection
+    await initializeDatabase();
+
     // Force sync to recreate tables - be careful with this in production!
     await sequelize.sync({ force: true });
     console.log('✅ Database synchronized');
-    
+
     const PORT = process.env.PORT || 3001;
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);

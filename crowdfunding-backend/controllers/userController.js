@@ -4,61 +4,81 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Campaign = require('../models/Campaign');
 const Transaction = require('../models/Transaction');
+const { ValidationError } = require('sequelize');
 
 exports.register = async (req, res) => {
   try {
-    const { email, password, username } = req.body;
+    const { username, email, password, phone, birthdate } = req.body;
 
-    // Validate input
-    if (!email || !password || !username) {
-      return res.status(400).json({ 
-        message: 'Email, password and username are required' 
+    // Validate required fields
+    if (!username || !email || !password || !phone || !birthdate) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'All fields are required: username, email, password, phone, and birthdate'
       });
     }
 
-    // Check if user exists
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ 
-        message: 'Email is already registered' 
-      });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
-    const newUser = await User.create({
-      email,
+    // Create user with validation
+    const user = await User.create({
       username,
-      password: hashedPassword
+      email,
+      password: await bcrypt.hash(password, 10),
+      phone,
+      birthdate
     });
 
-    // Generate token
+    // Generate JWT token
     const token = jwt.sign(
-      { id: newUser.id, email: newUser.email },
+      { id: user.id, email: user.email },
       process.env.JWT_SECRET || 'secretKey',
       { expiresIn: '1d' }
     );
 
-    // Remove password from response
+    // Return success response without password
     const userResponse = {
-      id: newUser.id,
-      email: newUser.email,
-      username: newUser.username,
-      createdAt: newUser.createdAt
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      birthdate: user.birthdate,
+      createdAt: user.createdAt
     };
 
-    res.status(201).json({ 
-      message: 'User registered successfully',
+    res.status(201).json({
+      status: 'success',
+      message: 'Registration successful',
       token,
       user: userResponse
     });
+
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ 
-      message: 'Error registering user',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+
+    // Handle validation errors
+    if (error instanceof ValidationError) {
+      return res.status(400).json({
+        status: 'error',
+        message: error.errors[0]?.message || 'Validation error',
+        errors: error.errors.map(err => ({
+          field: err.path,
+          message: err.message
+        }))
+      });
+    }
+
+    // Handle unique constraint errors
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      const field = error.errors[0]?.path;
+      return res.status(400).json({
+        status: 'error',
+        message: `${field} is already taken`
+      });
+    }
+
+    // Handle other errors
+    res.status(500).json({
+      status: 'error',
+      message: 'Registration failed. Please try again later.'
     });
   }
 };
@@ -67,100 +87,134 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate input
+    // Input validation
     if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' });
+      return res.status(400).json({
+        status: 'error',
+        message: 'Email and password are required'
+      });
     }
 
-    // Find user
-    const user = await User.findOne({ where: { email } });
+    // Find user with email
+    const user = await User.findOne({ 
+      where: { email },
+      attributes: ['id', 'username', 'email', 'password'] // Only select needed fields
+    });
+
+    // If no user found with that email
     if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({
+        status: 'error',
+        message: 'Invalid email or password'
+      });
     }
 
     // Compare password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Invalid email or password'
+      });
     }
 
-    // Generate token
+    // Generate JWT token
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET || 'secretKey',
-      { expiresIn: '1d' }
+      { expiresIn: '24h' }
     );
 
-    // Remove password from response
-    const userResponse = {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      createdAt: user.createdAt
-    };
-
-    res.json({ 
+    // Return success response without password
+    res.json({
+      status: 'success',
       message: 'Login successful',
       token,
-      user: userResponse
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email
+      }
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ 
-      message: 'Error during login',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    res.status(500).json({
+      status: 'error',
+      message: 'Login failed. Please try again later.'
     });
   }
 };
 
-// (Exemple) Créer une campagne
 exports.createCampaign = async (req, res) => {
   try {
-    // L'ID de l'utilisateur peut provenir du token JWT décodé
-    const userId = req.userId; // supposons qu'on l'ait stocké dans un middleware d'auth
-    const { title, description, goal } = req.body;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Authentication required'
+      });
+    }
 
-    const campaign = new Campaign({
-      title,
-      description,
-      goal,
-      owner: userId
+    const campaign = await Campaign.create({
+      ...req.body,
+      userId
     });
 
-    await campaign.save();
-    res.status(201).json({ message: 'Campagne créée avec succès', campaign });
+    res.status(201).json({
+      status: 'success',
+      message: 'Campaign created successfully',
+      campaign
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error });
+    console.error('Create campaign error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to create campaign'
+    });
   }
 };
 
-// (Exemple) Faire une donation
 exports.makeDonation = async (req, res) => {
   try {
-    const userId = req.userId; // supposons qu'on l'ait stocké dans un middleware d'auth
-    const { campaignId, amount, method } = req.body;
-
-    // Vérifier la campagne
-    const campaign = await Campaign.findById(campaignId);
-    if (!campaign) {
-      return res.status(404).json({ message: 'Campagne introuvable.' });
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Authentication required'
+      });
     }
 
-    // Créer la transaction
-    const transaction = new Transaction({
+    const { campaignId, amount } = req.body;
+    
+    const campaign = await Campaign.findByPk(campaignId);
+    if (!campaign) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Campaign not found'
+      });
+    }
+
+    const transaction = await Transaction.create({
       amount,
-      method,
-      campaign: campaign._id,
-      donor: userId
+      donorId: userId,
+      campaignId,
+      status: 'COMPLETED'
     });
-    await transaction.save();
 
-    // Mettre à jour le solde de la campagne
-    campaign.balance += amount;
-    await campaign.save();
+    // Update campaign donation stats
+    await campaign.increment('donated', { by: amount });
+    await campaign.increment('donors');
 
-    res.status(201).json({ message: 'Donation effectuée avec succès', transaction });
+    res.status(201).json({
+      status: 'success',
+      message: 'Donation successful',
+      transaction
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error });
+    console.error('Donation error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to process donation'
+    });
   }
 };

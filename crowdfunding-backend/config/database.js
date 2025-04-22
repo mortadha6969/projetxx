@@ -1,62 +1,51 @@
-const { Sequelize } = require('sequelize'); 
+const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-const sequelize = new Sequelize(
-    process.env.DB_NAME || 'crowdfundingdb',
-    process.env.DB_USER || 'root',
-    process.env.DB_PASSWORD || '',
-    {
-        host: process.env.DB_HOST || 'localhost',
-        dialect: 'mysql',
-        port: process.env.DB_PORT || 3306,
-        logging: console.log,
-        pool: {
-            max: 5,
-            min: 0,
-            acquire: 30000,
-            idle: 10000
-        },
-        define: {
-            charset: 'utf8mb4',
-            collate: 'utf8mb4_general_ci',
-            timestamps: true,
-            freezeTableName: true
-        },
-        dialectOptions: {
-            multipleStatements: true,
-            supportBigNumbers: true,
-            bigNumberStrings: true
-        }
-    }
-);
+// Create a connection to MySQL server without database specified
+const rootSequelize = new Sequelize('mysql', 'root', '', {
+    host: 'localhost',
+    dialect: 'mysql',
+    logging: false
+});
 
-// Test Database Connection and Create Database if not exists
+// Create the main database connection
+const sequelize = new Sequelize('crowdfundingdb', 'root', '', {
+    host: 'localhost',
+    dialect: 'mysql',
+    logging: console.log,
+    pool: {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+    },
+    define: {
+        charset: 'utf8mb4',
+        collate: 'utf8mb4_general_ci',
+        timestamps: true,
+        freezeTableName: true
+    }
+});
+
+// Initialize Database
 const initializeDatabase = async () => {
     try {
-        // Create database if it doesn't exist
-        const tempSequelize = new Sequelize(
-            'mysql',
-            process.env.DB_USER || 'root',
-            process.env.DB_PASSWORD || '',
-            {
-                host: process.env.DB_HOST || 'localhost',
-                dialect: 'mysql',
-                logging: false
-            }
-        );
+        // First, ensure the database exists
+        await rootSequelize.query('CREATE DATABASE IF NOT EXISTS crowdfundingdb;');
+        console.log("✅ Database existence checked");
 
-        await tempSequelize.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME || 'crowdfundingdb'};`);
-        await tempSequelize.close();
-
-        // Test connection to the actual database
+        // Test connection to the database
         await sequelize.authenticate();
         console.log("✅ Database connected successfully");
-    } catch (err) {
-        console.error("❌ Database connection error:", err);
-        process.exit(1);
+
+        return sequelize;
+    } catch (error) {
+        console.error('❌ Unable to connect to the database:', error);
+        throw error;
+    } finally {
+        // Close the root connection as it's no longer needed
+        await rootSequelize.close();
     }
 };
 
-initializeDatabase();
-
-module.exports = sequelize;
+module.exports = { sequelize, initializeDatabase };
