@@ -62,10 +62,29 @@ const userRoutes = require('./routes/userRoutes');
 const campaignRoutes = require('./routes/campaignRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
 
+// ✅ Import Middleware
+const auth = require('./middleware/auth');
+const { upload } = require('./middleware/fileUpload');
+
+// ✅ Direct route handlers for backward compatibility
+const userController = require('./controllers/userController');
+
+// Register, login, and profile routes directly in server.js for backward compatibility
+app.post('/users/register', userController.register);
+app.post('/users/login', userController.login);
+app.get('/users/profile', auth, userController.getProfile);
+app.put('/users/profile', auth, upload.single('profileImage'), userController.updateProfile);
+app.put('/users/change-password', auth, userController.changePassword);
+
 // ✅ Use Routes
 app.use('/users', userRoutes);
 app.use('/campaigns', campaignRoutes);
 app.use('/transactions', transactionRoutes);
+
+// ✅ API versioned routes
+app.use('/api/users', userRoutes);
+app.use('/api/campaigns', campaignRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 // ✅ Error Handler Middleware
 app.use((err, req, res, next) => {

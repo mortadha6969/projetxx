@@ -34,6 +34,18 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: true
     },
+    phone: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    birthdate: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
+    },
+    bio: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
     profileImage: {
         type: DataTypes.STRING,
         allowNull: true

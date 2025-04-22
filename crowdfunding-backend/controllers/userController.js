@@ -96,7 +96,7 @@ exports.login = async (req, res) => {
     }
 
     // Find user with email
-    const user = await User.findOne({ 
+    const user = await User.findOne({
       where: { email },
       attributes: ['id', 'username', 'email', 'password'] // Only select needed fields
     });
@@ -174,6 +174,153 @@ exports.createCampaign = async (req, res) => {
   }
 };
 
+exports.getProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Authentication required'
+      });
+    }
+
+    // Find user by ID
+    const user = await User.findByPk(userId, {
+      attributes: { exclude: ['password'] } // Exclude password from the response
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      user
+    });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to get profile'
+    });
+  }
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Authentication required'
+      });
+    }
+
+    // Find user by ID
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'User not found'
+      });
+    }
+
+    // Fields that can be updated
+    const { firstName, lastName, phone, bio } = req.body;
+
+    // Update user fields if provided
+    if (firstName !== undefined) user.firstName = firstName;
+    if (lastName !== undefined) user.lastName = lastName;
+    if (phone !== undefined) user.phone = phone;
+    if (bio !== undefined) user.bio = bio;
+
+    // Handle profile image upload
+    if (req.file) {
+      // Set new profile image path
+      user.profileImage = `/uploads/${req.file.filename}`;
+    }
+
+    // Save updated user
+    await user.save();
+
+    // Return updated user without password
+    const userResponse = user.toJSON();
+    delete userResponse.password;
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Profile updated successfully',
+      user: userResponse
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to update profile'
+    });
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Authentication required'
+      });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    // Validate input
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Current password and new password are required'
+      });
+    }
+
+    // Find user by ID
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'User not found'
+      });
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Current password is incorrect'
+      });
+    }
+
+    // Update password
+    user.password = newPassword; // The beforeUpdate hook will hash the password
+    await user.save();
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to change password'
+    });
+  }
+};
+
 exports.makeDonation = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -185,7 +332,7 @@ exports.makeDonation = async (req, res) => {
     }
 
     const { campaignId, amount } = req.body;
-    
+
     const campaign = await Campaign.findByPk(campaignId);
     if (!campaign) {
       return res.status(404).json({
