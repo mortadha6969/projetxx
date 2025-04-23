@@ -1,0 +1,131 @@
+.auth-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.auth-container h1 {
+  text-align: center;
+  background-color: #0984e3;
+  color: #ffffff;
+  padding: 10px;
+  height: 80px;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+.auth-container h2 {
+  text-align: center;
+  color: #2d3436;
+  margin-bottom: 2rem;
+}
+
+.auth-form {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #2d3436;
+}
+
+.form-group input {
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #0984e3;
+  box-shadow: 0 0 0 2px rgba(9, 132, 227, 0.1);
+}
+
+.error {
+  color: #e74c3c;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.password-strength {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.password-strength ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.password-strength li {
+  font-size: 0.8rem;
+  color: #747d8c;
+}
+
+.password-strength li.valid {
+  color: #2ed573;
+  font-weight: bold;
+}
+
+.submit-btn {
+  background: #0984e3;
+  color: white;
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.submit-btn:hover {
+  background: #0767b2;
+}
+
+.login-prompt {
+  text-align: center;
+  margin-top: 1rem;
+  color: #636e72;
+}
+
+.login-prompt a {
+  color: #0984e3;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.success-message {
+  text-align: center;
+  padding: 2rem;
+  background: #2ed57320;
+  border-radius: 8px;
+  color: #2d3436;
+}
+
+.success-message h3 {
+  color: #2ed573;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .auth-container {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+}

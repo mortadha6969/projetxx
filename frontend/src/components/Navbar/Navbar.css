@@ -1,0 +1,192 @@
+.navbar-container {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  z-index: 1000;
+}
+
+@media (max-width: 890px) {
+  .Min-Menu-up {
+    display: none;
+  }
+}
+
+@media (min-width: 890px) {
+  .Min-Menu-down {
+    display: none;
+  }
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.logo-button {
+  padding: 0.5rem 0.5rem;
+  border: 2px solid #2c3e50;
+  border-radius: 10px;
+  text-decoration: none;
+  outline: none;
+  background: none;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logo-symbol {
+  font-size: 0.8rem;
+  color: #e74c3c;
+}
+
+.nav-buttons-up {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-button-up {
+  padding: 0.5rem 1.3rem;
+  border: none;
+  background: none;
+  color: #000000;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-button-up:hover {
+  color: #e74c3c;
+  transform: translateY(-2px);
+}
+
+.nav-buttons-down {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+}
+
+.nav-button-item {
+  margin: 20px 30px;
+  border: none;
+  border-radius: 20px;
+  background: none;
+  color: #000000;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-button-item:hover {
+  color: #e74c3c;
+  transform: translateY(-2px);
+}
+
+.Register-button {
+  padding: 1rem 1.5rem;
+  border: 2px solid #2c3e50;
+  border-radius: 25px;
+  display: flex;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: none;
+  position: absolute;
+  right: 90px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.Login-button {
+  padding: 1rem 1.5rem;
+  border: 2px solid #2c3e50;
+  border-radius: 25px;
+  display: flex;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: none;
+  position: absolute;
+  right: 250px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.Profile-button {
+  padding: 0.9rem 0.9rem;
+  border: 2px solid #2c3e50;
+  border-radius: 25px;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.Register-button:hover,
+.Login-button:hover,
+.Profile-button:hover {
+  box-shadow: 0 4px 10px #0984e3;
+  color: rgb(0, 0, 0);
+}
+
+.Register-icon,
+.Login-icon,
+.Profile-icon {
+  font-weight: bold;
+}
+
+.button1 {
+  text-decoration: none;
+}
+
+/* ✅ New Logout button styling */
+.Logout-button {
+  padding: 0.9rem 1.2rem;
+  border: 2px solid #e74c3c;
+  border-radius: 25px;
+  background: none;
+  color: #e74c3c;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: absolute;
+  right: 120px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.Logout-button:hover {
+  background-color: #e74c3c;
+  color: white;
+  box-shadow: 0 4px 10px rgba(231, 76, 60, 0.4);
+}
