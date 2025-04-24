@@ -14,6 +14,9 @@ exports.getAllCampaigns = async (req, res) => {
 
 exports.createCampaign = async (req, res) => {
   try {
+    console.log('Request files:', req.files);
+    console.log('Request body:', req.body);
+
     const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({ message: 'User not authenticated' });
@@ -23,37 +26,54 @@ exports.createCampaign = async (req, res) => {
 
     // Validate required fields
     if (!title || !description || !target) {
-      return res.status(400).json({ 
-        message: 'Missing required fields. Please provide title, description, and target amount.' 
+      return res.status(400).json({
+        message: 'Missing required fields. Please provide title, description, and target amount.'
       });
     }
 
-    // Handle image URL
+    // Handle main image URL
     let imageUrl = null;
-    if (req.file) {
-      // Convert backslashes to forward slashes for consistency
-      imageUrl = `/uploads/${req.file.filename}`.replace(/\\/g, '/');
+    let files = [];
+
+    // Process main image
+    if (req.files && req.files.image && req.files.image.length > 0) {
+      const mainImage = req.files.image[0];
+      imageUrl = `/uploads/${mainImage.filename}`.replace(/\\/g, '/');
     }
+
+    // Process additional images
+    if (req.files && req.files.additionalImages) {
+      files = req.files.additionalImages.map(file => {
+        return {
+          url: `/uploads/${file.filename}`.replace(/\\/g, '/'),
+          name: file.originalname,
+          type: file.mimetype
+        };
+      });
+    }
+
+    console.log('Creating campaign with files:', files);
 
     const campaign = await Campaign.create({
       title,
       description,
       target: parseFloat(target),
       imageUrl,
+      files,
       category: category || 'General',
       endDate: endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       userId
     });
 
-    res.status(201).json({ 
-      message: 'Campaign created successfully', 
-      campaign 
+    res.status(201).json({
+      message: 'Campaign created successfully',
+      campaign
     });
   } catch (error) {
     console.error('Error creating campaign:', error);
-    res.status(500).json({ 
-      message: 'Failed to create campaign', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Failed to create campaign',
+      error: error.message
     });
   }
 };
@@ -64,17 +84,39 @@ exports.updateCampaign = async (req, res) => {
     if (!campaign) {
       return res.status(404).json({ message: 'Campaign not found' });
     }
-    
+
     // Check if user owns the campaign
     if (campaign.userId !== req.user?.id) {
       return res.status(403).json({ message: 'Not authorized to update this campaign' });
     }
 
+    console.log('Update request files:', req.files);
+    console.log('Update request body:', req.body);
+
     const updateData = { ...req.body };
 
-    // Handle image update if a new file is uploaded
-    if (req.file) {
-      updateData.imageUrl = `/uploads/${req.file.filename}`.replace(/\\/g, '/');
+    // Handle main image update if a new file is uploaded
+    if (req.files && req.files.image && req.files.image.length > 0) {
+      const mainImage = req.files.image[0];
+      updateData.imageUrl = `/uploads/${mainImage.filename}`.replace(/\\/g, '/');
+    }
+
+    // Process additional images
+    if (req.files && req.files.additionalImages) {
+      const additionalFiles = req.files.additionalImages.map(file => {
+        return {
+          url: `/uploads/${file.filename}`.replace(/\\/g, '/'),
+          name: file.originalname,
+          type: file.mimetype
+        };
+      });
+
+      // If we have existing files, merge them with the new ones
+      if (campaign.files && Array.isArray(campaign.files)) {
+        updateData.files = [...campaign.files, ...additionalFiles];
+      } else {
+        updateData.files = additionalFiles;
+      }
     }
 
     await campaign.update(updateData);
@@ -123,7 +165,7 @@ exports.startNewIteration = async (req, res) => {
   try {
     const { id } = req.params;
     const { reason } = req.body;
-    
+
     const currentCampaign = await Campaign.findByPk(id);
     if (!currentCampaign) {
       return res.status(404).json({ message: 'Campaign not found' });
@@ -169,7 +211,7 @@ exports.getPreviousIterations = async (req, res) => {
   try {
     const { id } = req.params;
     const campaign = await Campaign.findByPk(id);
-    
+
     if (!campaign) {
       return res.status(404).json({ message: 'Campaign not found' });
     }

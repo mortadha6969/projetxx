@@ -50,30 +50,35 @@ const upload = multer({
 
 // Error handling middleware
 const handleUploadError = (err, req, res, next) => {
+    console.log('File upload error:', err);
+
     if (err instanceof multer.MulterError) {
         // Multer-specific errors
+        console.log('Multer error code:', err.code);
+        console.log('Multer error field:', err.field);
+
         switch (err.code) {
             case 'LIMIT_FILE_SIZE':
-                return res.status(400).json({ 
-                    message: 'File too large. Maximum size is 5MB.' 
+                return res.status(400).json({
+                    message: 'File too large. Maximum size is 5MB.'
                 });
             case 'LIMIT_FILE_COUNT':
-                return res.status(400).json({ 
-                    message: 'Too many files. Maximum is 5 files.' 
+                return res.status(400).json({
+                    message: 'Too many files. Maximum is 5 files.'
                 });
             case 'LIMIT_UNEXPECTED_FILE':
-                return res.status(400).json({ 
-                    message: 'Unexpected field name in form data.' 
+                return res.status(400).json({
+                    message: `Unexpected field name in form data: ${err.field}`
                 });
             default:
-                return res.status(400).json({ 
-                    message: 'Error uploading file.' 
+                return res.status(400).json({
+                    message: `Error uploading file: ${err.code}`
                 });
         }
     } else if (err) {
         // Custom errors (like invalid file type)
-        return res.status(400).json({ 
-            message: err.message || 'Error uploading file.' 
+        return res.status(400).json({
+            message: err.message || 'Error uploading file.'
         });
     }
     next();

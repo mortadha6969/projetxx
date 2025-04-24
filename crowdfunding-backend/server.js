@@ -23,6 +23,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ✅ Serve static files from uploads directory
+// Add logging middleware for static file requests
+app.use('/uploads', (req, _res, next) => {
+  console.log(`Static file request: ${req.method} ${req.url}`);
+  next();
+});
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ✅ Import Models

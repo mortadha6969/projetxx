@@ -1,18 +1,64 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../utils/AuthContext';
-import { FiClock, FiUsers, FiTarget, FiHeart } from 'react-icons/fi';
+import { FiClock, FiUsers, FiTarget, FiHeart, FiArrowLeft } from 'react-icons/fi';
 
 const CampaignDetail = ({ campaign }) => {
+  console.log('CampaignDetail received campaign:', campaign);
+
   const { isAuthenticated } = useAuth();
-  const [activeImage, setActiveImage] = useState(campaign.imageUrl || campaign.images?.[0]);
+  const navigate = useNavigate();
+  // Import API base URL
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+
+  // Helper function to get full image URL
+  const getFullImageUrl = (path) => {
+    if (!path) return null;
+    // If the path already starts with http, it's already a full URL
+    if (path.startsWith('http')) return path;
+    // If the path starts with /, it's a relative path from the API
+    return `${API_BASE_URL}${path}`;
+  };
+
+  // Process files array if it's a string
+  let processedFiles = campaign.files;
+
+  if (campaign.files && typeof campaign.files === 'string') {
+    try {
+      processedFiles = JSON.parse(campaign.files);
+      console.log('Parsed files from string:', processedFiles);
+    } catch (error) {
+      console.error('Error parsing files JSON:', error);
+      processedFiles = [];
+    }
+  }
+
+  // Combine main image and additional images from files array
+  const allImages = [
+    getFullImageUrl(campaign.imageUrl),
+    ...(processedFiles && Array.isArray(processedFiles)
+      ? processedFiles.map(file => getFullImageUrl(file.url))
+      : [])
+  ].filter(Boolean); // Remove any null/undefined values
+
+  console.log('All images:', allImages);
+
+  const [activeImage, setActiveImage] = useState(allImages[0] || campaign.images?.[0]);
   const [donationAmount, setDonationAmount] = useState(50);
-  
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState(null);
+
+  // Function to open the lightbox with a specific image
+  const openLightbox = (image) => {
+    setLightboxImage(image);
+    setLightboxOpen(true);
+  };
+
   // Calculate progress percentage
   const progressPercentage = Math.min(
-    Math.round((campaign.donated / campaign.target) * 100),
+    Math.round(((campaign.donated || 0) / campaign.target) * 100),
     100
   );
 
@@ -48,7 +94,92 @@ const CampaignDetail = ({ campaign }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden">
+    <div>
+      {/* Breadcrumb Navigation */}
+      <nav className="flex mb-4" aria-label="Breadcrumb">
+        <ol className="inline-flex items-center space-x-1 md:space-x-3">
+          <li className="inline-flex items-center">
+            <Link to="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary-600">
+              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+              </svg>
+              Home
+            </Link>
+          </li>
+          <li>
+            <div className="flex items-center">
+              <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd"></path>
+              </svg>
+              <Link to="/campaigns" className="ml-1 text-sm font-medium text-gray-700 hover:text-primary-600 md:ml-2">
+                Campaigns
+              </Link>
+            </div>
+          </li>
+          <li aria-current="page">
+            <div className="flex items-center">
+              <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd"></path>
+              </svg>
+              <span className="ml-1 text-sm font-medium text-gray-500 md:ml-2 truncate max-w-xs">
+                {campaign.title}
+              </span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+
+      {/* Go Back Button */}
+      <div className="mb-4">
+        <button
+          onClick={() => navigate('/campaigns')}
+          className="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
+        >
+          <FiArrowLeft className="mr-2" />
+          <span>Back to Campaigns</span>
+        </button>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        {/* Lightbox */}
+      {lightboxOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <div className="relative max-w-4xl max-h-screen p-4">
+            <button
+              className="absolute top-4 right-4 text-white bg-red-600 rounded-full p-2 hover:bg-red-700 transition-colors"
+              onClick={() => setLightboxOpen(false)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <img
+              src={lightboxImage}
+              alt="Enlarged campaign image"
+              className="max-w-full max-h-[80vh] object-contain"
+            />
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+              {allImages.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightboxImage(image);
+                  }}
+                  className={`w-16 h-16 rounded-md overflow-hidden border-2 ${
+                    lightboxImage === image ? 'border-primary-500' : 'border-white'
+                  }`}
+                >
+                  <img src={image} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       <div className="md:flex">
         {/* Campaign Images */}
         <div className="md:w-3/5">
@@ -60,28 +191,39 @@ const CampaignDetail = ({ campaign }) => {
               transition={{ duration: 0.3 }}
               src={activeImage}
               alt={campaign.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover cursor-pointer"
+              onClick={() => openLightbox(activeImage)}
             />
-            
+
             {/* Image thumbnails */}
-            {campaign.images && campaign.images.length > 1 && (
-              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-                {campaign.images.map((image, index) => (
+            {allImages.length > 1 && (
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 bg-black bg-opacity-30 py-2">
+                {allImages.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setActiveImage(image)}
-                    className={`w-12 h-12 rounded-md overflow-hidden border-2 ${
+                    className={`w-16 h-16 rounded-md overflow-hidden border-2 ${
                       activeImage === image ? 'border-primary-500' : 'border-white'
-                    }`}
+                    } hover:border-primary-300 transition-all`}
                   >
                     <img src={image} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 text-white font-bold">
+                      {index === 0 ? 'Main' : `#${index + 1}`}
+                    </div>
                   </button>
                 ))}
               </div>
             )}
+
+            {/* Image count badge */}
+            {allImages.length > 1 && (
+              <div className="absolute top-4 right-4 bg-primary-500 text-white px-2 py-1 rounded-md text-sm font-medium">
+                {allImages.length} Images
+              </div>
+            )}
           </div>
         </div>
-        
+
         {/* Campaign Info */}
         <div className="md:w-2/5 p-6">
           <div className="mb-6">
@@ -96,7 +238,7 @@ const CampaignDetail = ({ campaign }) => {
                 by {campaign.user?.username || "Anonymous"}
               </span>
             </div>
-            
+
             {/* Campaign Stats */}
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="bg-gray-50 p-3 rounded-lg">
@@ -109,7 +251,7 @@ const CampaignDetail = ({ campaign }) => {
                 <div className="flex items-center text-gray-500 mb-1">
                   <FiUsers className="mr-1" /> Donors
                 </div>
-                <div className="font-bold text-gray-900">{campaign.donors}</div>
+                <div className="font-bold text-gray-900">{campaign.donors || 0}</div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
                 <div className="flex items-center text-gray-500 mb-1">
@@ -121,10 +263,10 @@ const CampaignDetail = ({ campaign }) => {
                 <div className="flex items-center text-gray-500 mb-1">
                   <FiHeart className="mr-1" /> Raised
                 </div>
-                <div className="font-bold text-gray-900">{formatCurrency(campaign.donated)}</div>
+                <div className="font-bold text-gray-900">{formatCurrency(campaign.donated || 0)}</div>
               </div>
             </div>
-            
+
             {/* Progress Bar */}
             <div className="mb-6">
               <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -135,14 +277,14 @@ const CampaignDetail = ({ campaign }) => {
               </div>
               <div className="flex justify-between mt-2 text-sm">
                 <span className="font-semibold text-primary-700">
-                  {formatCurrency(campaign.donated)}
+                  {formatCurrency(campaign.donated || 0)}
                 </span>
                 <span className="text-gray-500">
-                  {progressPercentage}% of {formatCurrency(campaign.target)}
+                  {progressPercentage}% of {formatCurrency(campaign.target || 0)}
                 </span>
               </div>
             </div>
-            
+
             {/* Donation Form */}
             {isAuthenticated ? (
               <form onSubmit={handleDonate} className="mb-6">
@@ -205,7 +347,7 @@ const CampaignDetail = ({ campaign }) => {
                 </Link>
               </div>
             )}
-            
+
             {/* Share Buttons */}
             <div>
               <p className="text-sm text-gray-500 mb-2">Share this campaign</p>
@@ -236,18 +378,53 @@ const CampaignDetail = ({ campaign }) => {
           </div>
         </div>
       </div>
-      
+
+      {/* Campaign Gallery - Only show if we have multiple images */}
+      {allImages.length > 1 && (
+        <div className="p-6 border-t border-gray-200">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Campaign Gallery</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {allImages.map((image, index) => (
+              <div
+                key={index}
+                className="relative rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => {
+                  setActiveImage(image);
+                  openLightbox(image);
+                }}
+              >
+                <img
+                  src={image}
+                  alt={`Campaign image ${index + 1}`}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 opacity-0 hover:opacity-100 transition-opacity">
+                  <span className="bg-primary-500 text-white px-2 py-1 rounded-md text-sm font-medium">
+                    {index === 0 ? 'Main Image' : `Image ${index + 1}`}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Campaign Description */}
       <div className="p-6 border-t border-gray-200">
         <h2 className="text-xl font-bold text-gray-900 mb-4">About This Campaign</h2>
         <div className="prose max-w-none">
-          {campaign.description.split('\n').map((paragraph, index) => (
-            <p key={index} className="mb-4 text-gray-700">
-              {paragraph}
-            </p>
-          ))}
+          {campaign.description ?
+            campaign.description.split('\n').map((paragraph, index) => (
+              <p key={index} className="mb-4 text-gray-700">
+                {paragraph}
+              </p>
+            ))
+            :
+            <p className="mb-4 text-gray-700">No description available.</p>
+          }
         </div>
       </div>
+    </div>
     </div>
   );
 };

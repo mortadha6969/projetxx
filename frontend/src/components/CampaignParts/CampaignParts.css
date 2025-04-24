@@ -126,6 +126,25 @@
 .donate-button:hover {
   background-color: #0056b3;
 }
+
+.error-message {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.no-campaigns-message {
+  background-color: #f3f4f6;
+  color: #4b5563;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  text-align: center;
+  font-size: 1.125rem;
+}
 .create-campaign-button-container {
   display: flex;
   justify-content: center;

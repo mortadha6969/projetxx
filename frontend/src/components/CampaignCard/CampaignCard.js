@@ -10,6 +10,18 @@ const CampaignCard = ({ campaign }) => {
     100
   );
 
+  // Import API base URL
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+
+  // Helper function to get full image URL
+  const getFullImageUrl = (path) => {
+    if (!path) return null;
+    // If the path already starts with http, it's already a full URL
+    if (path.startsWith('http')) return path;
+    // If the path starts with /, it's a relative path from the API
+    return `${API_BASE_URL}${path}`;
+  };
+
   // Format currency
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-US", {
@@ -34,15 +46,23 @@ const CampaignCard = ({ campaign }) => {
       {/* Campaign Image */}
       <div className="relative">
         <img
-          src={campaign.imageUrl || "https://source.unsplash.com/random/800x600/?project"}
+          src={getFullImageUrl(campaign.imageUrl) || "https://source.unsplash.com/random/800x600/?project"}
           alt={campaign.title}
           className="w-full h-44 object-cover"
         />
-        {campaign.status === "trending" && (
-          <div className="absolute top-3 right-3 bg-primary-500 text-white text-xs font-medium px-2 py-1 rounded-md">
-            Trending
-          </div>
-        )}
+        {/* Status badges */}
+        <div className="absolute top-3 right-3 flex flex-col gap-2">
+          {campaign.status === "trending" && (
+            <div className="bg-primary-500 text-white text-xs font-medium px-2 py-1 rounded-md">
+              Trending
+            </div>
+          )}
+          {campaign.files && campaign.files.length > 0 && (
+            <div className="bg-blue-500 text-white text-xs font-medium px-2 py-1 rounded-md">
+              {campaign.files.length + 1} Images
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Campaign Content */}

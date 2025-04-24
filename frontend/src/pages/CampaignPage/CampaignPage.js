@@ -19,14 +19,32 @@ const CampaignPage = () => {
         try {
           setLoading(true);
           setError(null);
-          
+
           // Use the API service to fetch campaign data
           const response = await apiService.campaigns.getById(id);
-          setCampaign(response.data);
+          console.log('Campaign data received:', response);
+
+          // Log the files array specifically
+          if (response && response.files) {
+            console.log('Campaign files:', response.files);
+            console.log('Files type:', typeof response.files);
+
+            // If files is a string, try to parse it
+            if (typeof response.files === 'string') {
+              try {
+                response.files = JSON.parse(response.files);
+                console.log('Parsed files:', response.files);
+              } catch (parseError) {
+                console.error('Error parsing files JSON:', parseError);
+              }
+            }
+          }
+
+          setCampaign(response);
         } catch (err) {
           console.error('Error fetching campaign:', err);
           setError('Failed to load campaign. Please try again later.');
-          
+
           // For demo purposes, set a sample campaign if API fails
           setCampaign(sampleCampaign);
         } finally {
@@ -52,11 +70,29 @@ const CampaignPage = () => {
       >
         {error && (
           <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
-            {error}
+            <p>{error}</p>
+            <button
+              onClick={() => window.location.href = '/campaigns'}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              Back to Campaigns
+            </button>
           </div>
         )}
-        
+
         {campaign && <CampaignDetail campaign={campaign} />}
+
+        {!campaign && !loading && !error && (
+          <div className="bg-yellow-50 text-yellow-700 p-4 rounded-lg mb-6">
+            <p>Campaign not found or still loading. Please wait or try again later.</p>
+            <button
+              onClick={() => window.location.href = '/campaigns'}
+              className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors"
+            >
+              Back to Campaigns
+            </button>
+          </div>
+        )}
       </motion.div>
     );
   }
@@ -74,7 +110,7 @@ const CampaignPage = () => {
           Discover innovative projects and inspiring causes that need your support.
         </p>
       </div>
-      
+
       <CampaignList />
     </motion.div>
   );

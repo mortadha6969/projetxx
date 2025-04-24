@@ -17,7 +17,7 @@ const RegisterPage = lazy(() => import("./pages/RegisterPage/ModernRegisterPage"
 const LoginPage = lazy(() => import("./pages/LoginPage/ModernLoginPage"));
 const ProfileAccountPage = lazy(() => import("./Interfaces/ProfileAccountPage/ProfileAccountPage"));
 const CampaignPage = lazy(() => import("./pages/CampaignPage/CampaignPage"));
-const CreateCampaignPage = lazy(() => import("./Interfaces/CreateCampaignPage/CreateCampaignPage"));
+const CreateCampaignPage = lazy(() => import("./pages/CreateCampaignPage/CreateCampaignPage"));
 const NotFound = lazy(() => import("./pages/NotFound/NotFound"));
 
 function App() {

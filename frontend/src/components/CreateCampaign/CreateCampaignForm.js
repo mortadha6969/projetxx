@@ -6,7 +6,7 @@ import './CreateCampaignForm.css';
 
 const CreateCampaignForm = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, currentUser } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   // Pre-fill with test data for easier testing
   const [formData, setFormData] = useState({
@@ -57,15 +57,20 @@ const CreateCampaignForm = () => {
 
       // Add main image if available
       if (files.length > 0) {
+        // Use the first file as the main image
         campaignData.append('image', files[0]);
 
         // Add additional images if available
         if (files.length > 1) {
-          for (let i = 1; i < files.length; i++) {
+          // Use the rest of the files as additional images
+          for (let i = 1; i < files.length && i <= 4; i++) {
+            // Make sure we're using the exact field name expected by the backend
             campaignData.append('additionalImages', files[i]);
           }
         }
       }
+
+      console.log('Sending campaign data with files:', files.length);
 
       // Send request to create campaign
       const response = await apiService.campaigns.create(campaignData);
@@ -83,9 +88,9 @@ const CreateCampaignForm = () => {
       });
       setFiles([]);
 
-      // Redirect to campaign page after a delay
+      // Redirect to campaigns page after a delay
       setTimeout(() => {
-        navigate('/campaign');
+        navigate('/campaigns');
       }, 2000);
 
     } catch (error) {
@@ -186,7 +191,7 @@ const CreateCampaignForm = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="files">Campaign Images</label>
+            <label htmlFor="files">Campaign Images (Up to 5 images)</label>
             <input
               type="file"
               id="files"
@@ -197,8 +202,21 @@ const CreateCampaignForm = () => {
               disabled={loading}
             />
             <small className="form-text">
-              Upload at least one image for your campaign. The first image will be used as the main image.
+              Upload up to 5 images for your campaign. The first image will be used as the main image, and the rest will be shown as additional images.
             </small>
+            {files.length > 0 && (
+              <div className="selected-files">
+                <p>Selected {files.length} image(s):</p>
+                <ul>
+                  {Array.from(files).map((file, index) => (
+                    <li key={index}>
+                      {index === 0 ? '🌟 ' : '📷 '}
+                      {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <button

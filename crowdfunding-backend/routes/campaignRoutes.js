@@ -9,15 +9,21 @@ router.get('/', campaignController.getAllCampaigns);
 router.get('/:id', campaignController.getCampaignById);
 
 // Protected routes (require authentication)
-router.post('/', 
-    auth, 
-    upload.single('image'),
+router.post('/',
+    auth,
+    upload.fields([
+        { name: 'image', maxCount: 1 },
+        { name: 'additionalImages', maxCount: 4 }
+    ]),
     handleUploadError,
     campaignController.createCampaign
 );
-router.put('/:id', 
-    auth, 
-    upload.single('image'),
+router.put('/:id',
+    auth,
+    upload.fields([
+        { name: 'image', maxCount: 1 },
+        { name: 'additionalImages', maxCount: 4 }
+    ]),
     handleUploadError,
     campaignController.updateCampaign
 );

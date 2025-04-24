@@ -15,18 +15,25 @@ const CampaignList = () => {
     const fetchCampaigns = async () => {
       try {
         setLoading(true);
-        // In a real app, you would pass filter and sort to the API
-        // const response = await apiService.campaigns.getAll({ filter, sort });
-        // setCampaigns(response.data || []);
-        
-        // For demo purposes, we'll use sample data
-        setTimeout(() => {
-          setCampaigns(sampleCampaigns);
-          setLoading(false);
-        }, 1000);
+        // Fetch real campaigns from the API
+        const response = await apiService.campaigns.getAll();
+        console.log('Fetched campaigns:', response);
+
+        // Check if we have campaigns data
+        if (response && Array.isArray(response)) {
+          setCampaigns(response);
+        } else if (response && Array.isArray(response.campaigns)) {
+          setCampaigns(response.campaigns);
+        } else {
+          console.warn('Unexpected API response format:', response);
+          setCampaigns([]);
+        }
       } catch (err) {
         console.error('Error fetching campaigns:', err);
         setError('Failed to load campaigns. Please try again later.');
+        // Fallback to sample data if API fails
+        setCampaigns(sampleCampaigns);
+      } finally {
         setLoading(false);
       }
     };

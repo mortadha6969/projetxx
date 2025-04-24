@@ -15,19 +15,27 @@ const FeaturedCampaigns = () => {
     const fetchCampaigns = async () => {
       try {
         setLoading(true);
-        // In a real app, you would use the API service
-        // const response = await apiService.campaigns.getAll({ limit: 3, sort: "popular" });
-        // setCampaigns(response.data || []);
+        // Fetch real campaigns from the API
+        const response = await apiService.campaigns.getAll();
+        console.log('Fetched featured campaigns:', response);
 
-        // For demo purposes, use sample data
-        setTimeout(() => {
-          setCampaigns(sampleCampaigns);
-          setLoading(false);
-        }, 500);
+        // Check if we have campaigns data
+        if (response && Array.isArray(response)) {
+          // Take the first 3 campaigns for featured section
+          setCampaigns(response.slice(0, 3));
+        } else if (response && Array.isArray(response.campaigns)) {
+          // Take the first 3 campaigns for featured section
+          setCampaigns(response.campaigns.slice(0, 3));
+        } else {
+          console.warn('Unexpected API response format:', response);
+          setCampaigns([]);
+        }
       } catch (err) {
         console.error("Error fetching campaigns:", err);
         setError("Failed to load projects. Please try again later.");
+        // Fallback to sample data if API fails
         setCampaigns(sampleCampaigns);
+      } finally {
         setLoading(false);
       }
     };

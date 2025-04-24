@@ -107,6 +107,30 @@
   margin-bottom: 1rem;
 }
 
+.selected-files {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+}
+
+.selected-files p {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #4b5563;
+}
+
+.selected-files ul {
+  list-style-type: none;
+  padding-left: 0.5rem;
+}
+
+.selected-files li {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
 @media (max-width: 768px) {
   .create-campaign-form {
     padding: 1.5rem;

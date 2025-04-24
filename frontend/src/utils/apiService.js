@@ -205,7 +205,28 @@ const apiService = {
         // Handle multipart form data for campaign images
         if (campaignData instanceof FormData) {
           const token = localStorage.getItem('token');
-          const config = createMultipartAuthHeader(token);
+
+          // Log the form data for debugging
+          console.log('Form data entries:');
+          for (let pair of campaignData.entries()) {
+            // Don't log the actual file content, just the field name and file name
+            if (pair[1] instanceof File) {
+              console.log(pair[0], pair[1].name);
+            } else {
+              console.log(pair[0], pair[1]);
+            }
+          }
+
+          // Create config with proper headers
+          const config = {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              // Let the browser set the correct Content-Type with boundary
+              'Content-Type': 'multipart/form-data'
+            }
+          };
+
+          // Make the API call
           const response = await axios.post(API_ENDPOINTS.CREATE_CAMPAIGN, campaignData, config);
           return response.data;
         } else {
@@ -213,6 +234,7 @@ const apiService = {
           return response.data;
         }
       } catch (error) {
+        console.error('Campaign creation error:', error.response?.data || error);
         throw error.response?.data || error;
       }
     },
@@ -222,7 +244,27 @@ const apiService = {
         // Handle multipart form data for campaign images
         if (campaignData instanceof FormData) {
           const token = localStorage.getItem('token');
-          const config = createMultipartAuthHeader(token);
+
+          // Log the form data for debugging
+          console.log('Form data entries for update:');
+          for (let pair of campaignData.entries()) {
+            // Don't log the actual file content, just the field name and file name
+            if (pair[1] instanceof File) {
+              console.log(pair[0], pair[1].name);
+            } else {
+              console.log(pair[0], pair[1]);
+            }
+          }
+
+          // Create config with proper headers
+          const config = {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              // Let the browser set the correct Content-Type with boundary
+              'Content-Type': 'multipart/form-data'
+            }
+          };
+
           const response = await axios.put(API_ENDPOINTS.UPDATE_CAMPAIGN(id), campaignData, config);
           return response.data;
         } else {
@@ -230,6 +272,7 @@ const apiService = {
           return response.data;
         }
       } catch (error) {
+        console.error('Campaign update error:', error.response?.data || error);
         throw error.response?.data || error;
       }
     },
