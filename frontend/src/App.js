@@ -6,18 +6,21 @@ import "react-toastify/dist/ReactToastify.css";
 
 // Components
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute/AdminRoute";
 import ModernNavbar from "./components/Navbar/ModernNavbar";
 import ModernFooter from "./components/WebsiteFooter/ModernFooter";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import LoadingSpinner from "./components/UI/LoadingSpinner";
+import AdminDashboardLink from "./pages/AdminDashboardLink";
 
 // Lazy-loaded pages for better performance
 const Home = lazy(() => import("./pages/Home/SimpleHome"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage/ModernRegisterPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage/ModernLoginPage"));
-const ProfileAccountPage = lazy(() => import("./Interfaces/ProfileAccountPage/ProfileAccountPage"));
+const ProfileAccountPage = lazy(() => import("./pages/ProfilePage/ModernProfilePage"));
 const CampaignPage = lazy(() => import("./pages/CampaignPage/CampaignPage"));
 const CreateCampaignPage = lazy(() => import("./pages/CreateCampaignPage/CreateCampaignPage"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard/AdminDashboard"));
 const NotFound = lazy(() => import("./pages/NotFound/NotFound"));
 
 function App() {
@@ -54,6 +57,13 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+                  {/* Admin route with both AdminRoute and direct access */}
+                  <Route
+                    path="/admin"
+                    element={
+                      <AdminDashboard />
+                    }
+                  />
 
                   {/* 404 route */}
                   <Route path="*" element={<NotFound />} />
@@ -62,6 +72,7 @@ function App() {
             </ErrorBoundary>
           </main>
           <ModernFooter />
+          <AdminDashboardLink />
         </div>
         <ToastContainer position="top-right" autoClose={5000} />
       </Router>

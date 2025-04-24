@@ -38,6 +38,8 @@ require('./models/index');
 const userRoutes = require('./routes/userRoutes');
 const campaignRoutes = require('./routes/campaignRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const debugAdminRoutes = require('./routes/debugAdminRoutes');
 
 // Note: Middleware is imported and used in the route files
 
@@ -59,6 +61,13 @@ app.use('/transactions', transactionRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/campaigns', campaignRoutes);
 app.use('/api/v1/transactions', transactionRoutes);
+
+// Admin routes
+app.use('/admin', adminRoutes);
+app.use('/api/v1/admin', adminRoutes);
+
+// Debug admin routes (no authentication required)
+app.use('/debug-admin', debugAdminRoutes);
 
 // ✅ Error Handler Middleware
 app.use((err, _req, res, _next) => {

@@ -18,16 +18,46 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      const username = localStorage.getItem('username');
+      const userRole = localStorage.getItem('userRole');
+
+      console.log('Auth check - token exists:', !!token);
+      console.log('Auth check - userRole from localStorage:', userRole);
 
       if (!token) {
         setIsLoading(false);
         return;
       }
 
+      // Set basic user info from localStorage while we fetch the full profile
+      if (userId && username) {
+        setCurrentUser({
+          id: userId,
+          username: username,
+          role: userRole || 'user'
+        });
+        setIsAuthenticated(true);
+      }
+
       try {
         // Fetch user profile
         const userData = await apiService.user.getProfile();
-        setCurrentUser(userData);
+        // Make sure we have the user's role
+        console.log('Auth check - userData:', userData);
+
+        if (userData && userData.user) {
+          console.log('Auth check - setting currentUser from userData.user:', userData.user);
+          setCurrentUser(userData.user);
+        } else {
+          console.log('Auth check - setting currentUser directly from userData:', userData);
+          setCurrentUser(userData);
+        }
+
+        // Debug the current user after setting it
+        setTimeout(() => {
+          console.log('Auth check - currentUser after setting:', currentUser);
+        }, 100);
         setIsAuthenticated(true);
       } catch (err) {
         console.error('Authentication check failed:', err);
@@ -52,6 +82,8 @@ export const AuthProvider = ({ children }) => {
       console.log('Attempting login with:', credentials);
       const response = await apiService.auth.login(credentials);
       console.log('Login response:', response);
+      // Debug the user role
+      console.log('User role from login:', response.user?.role);
 
       // Check if we have a token and user data
       if (!response.token || !response.user) {
@@ -62,6 +94,10 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', response.token);
       localStorage.setItem('userId', response.user.id);
       localStorage.setItem('username', response.user.username);
+      // Also save the user role
+      if (response.user.role) {
+        localStorage.setItem('userRole', response.user.role);
+      }
 
       // Update state
       setCurrentUser(response.user);
@@ -127,6 +163,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
+    localStorage.removeItem('userRole');
 
     // Update state
     setCurrentUser(null);

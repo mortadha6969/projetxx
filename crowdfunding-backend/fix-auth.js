@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 async function fixAuth() {
   try {
     console.log('Starting database fix...');
-    
+
     // Create MySQL connection
     const connection = await mysql.createConnection({
       host: process.env.DB_HOST || 'localhost',
@@ -13,15 +13,15 @@ async function fixAuth() {
       password: process.env.DB_PASSWORD || '',
       database: process.env.DB_NAME || 'crowdfundingdb'
     });
-    
+
     console.log('Connected to MySQL database');
-    
+
     // Drop existing tables
     console.log('Dropping existing tables...');
     await connection.execute('DROP TABLE IF EXISTS transactions');
     await connection.execute('DROP TABLE IF EXISTS Campaign');
     await connection.execute('DROP TABLE IF EXISTS User');
-    
+
     // Create User table
     console.log('Creating User table...');
     await connection.execute(`
@@ -36,11 +36,12 @@ async function fixAuth() {
         birthdate DATE,
         bio TEXT,
         profileImage VARCHAR(255),
+        role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
         createdAt DATETIME NOT NULL,
         updatedAt DATETIME NOT NULL
       )
     `);
-    
+
     // Create Campaign table
     console.log('Creating Campaign table...');
     await connection.execute(`
@@ -65,7 +66,7 @@ async function fixAuth() {
         FOREIGN KEY (previousIterationId) REFERENCES Campaign(id)
       )
     `);
-    
+
     // Create transactions table
     console.log('Creating transactions table...');
     await connection.execute(`
@@ -82,27 +83,27 @@ async function fixAuth() {
         FOREIGN KEY (campaign_id) REFERENCES Campaign(id) ON DELETE CASCADE
       )
     `);
-    
+
     // Create test user
     console.log('Creating test user...');
     const password = 'Password123!';
     const hashedPassword = await bcrypt.hash(password, 10);
     const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
-    
+
     await connection.execute(`
       INSERT INTO User (username, email, password, phone, birthdate, createdAt, updatedAt)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `, ['testuser', 'test@example.com', hashedPassword, '1234567890', '1990-01-01', now, now]);
-    
+
     console.log('Database fix completed successfully!');
     console.log('Test user created:');
     console.log('  Username: testuser');
     console.log('  Email: test@example.com');
     console.log('  Password: Password123!');
-    
+
     // Close connection
     await connection.end();
-    
+
     console.log('Database connection closed');
     process.exit(0);
   } catch (error) {

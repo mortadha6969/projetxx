@@ -48,22 +48,13 @@ const HeroSection = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="relative"
             >
-              <img
-                src="https://source.unsplash.com/random/800x600/?startup"
-                alt="Crowdfunding"
-                className="w-full h-auto rounded-lg shadow-md"
-              />
-              <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm p-4 rounded-md shadow-md">
-                <div className="flex justify-between">
-                  <div>
-                    <div className="text-primary-600 font-bold text-xl">$2.4M+</div>
-                    <div className="text-gray-600 text-sm">Funds Raised</div>
-                  </div>
-                  <div>
-                    <div className="text-primary-600 font-bold text-xl">500+</div>
-                    <div className="text-gray-600 text-sm">Successful Projects</div>
-                  </div>
-                </div>
+              <div className="relative overflow-hidden rounded-lg shadow-xl">
+                <img
+                  src="https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1169&q=80"
+                  alt="Crowdfunding"
+                  className="w-full h-auto object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-primary-700/10"></div>
               </div>
             </motion.div>
           </div>

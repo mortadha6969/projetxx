@@ -68,7 +68,19 @@ export const API_ENDPOINTS = {
   UPLOADS: `${ACTIVE_API_URL}/uploads`,
 
   // Health check
-  HEALTH_CHECK: `${ACTIVE_API_URL}/health-check`
+  HEALTH_CHECK: `${ACTIVE_API_URL}/health-check`,
+
+  // Admin endpoints
+  ADMIN_USERS: `${ACTIVE_API_URL}/admin/users`,
+  ADMIN_USER_DETAILS: (id) => `${ACTIVE_API_URL}/admin/users/${id}`,
+  ADMIN_CAMPAIGNS: `${ACTIVE_API_URL}/admin/campaigns`,
+  ADMIN_CAMPAIGN_DETAILS: (id) => `${ACTIVE_API_URL}/admin/campaigns/${id}`,
+  ADMIN_DASHBOARD: `${ACTIVE_API_URL}/admin/dashboard`,
+
+  // Debug admin endpoints (no authentication required)
+  DEBUG_ADMIN_USERS: `${ACTIVE_API_URL}/debug-admin/users`,
+  DEBUG_ADMIN_CAMPAIGNS: `${ACTIVE_API_URL}/debug-admin/campaigns`,
+  DEBUG_ADMIN_DASHBOARD: `${ACTIVE_API_URL}/debug-admin/dashboard`
 };
 
 // Helper function to create headers with authentication

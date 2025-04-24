@@ -49,6 +49,11 @@ const User = sequelize.define('User', {
     profileImage: {
         type: DataTypes.STRING,
         allowNull: true
+    },
+    role: {
+        type: DataTypes.ENUM('user', 'admin'),
+        defaultValue: 'user',
+        allowNull: false
     }
 }, {
     // Removed password hashing hooks to avoid double hashing

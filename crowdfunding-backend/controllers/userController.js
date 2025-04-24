@@ -32,7 +32,7 @@ exports.register = async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'secretKey',
       { expiresIn: '1d' }
     );
@@ -44,6 +44,7 @@ exports.register = async (req, res) => {
       email: user.email,
       phone: user.phone,
       birthdate: user.birthdate,
+      role: user.role,
       createdAt: user.createdAt
     };
 
@@ -104,7 +105,7 @@ exports.login = async (req, res) => {
     // Find user with email
     const user = await User.findOne({
       where: { email },
-      attributes: ['id', 'username', 'email', 'password'] // Only select needed fields
+      attributes: ['id', 'username', 'email', 'password', 'role'] // Include role
     });
 
     // If no user found with that email
@@ -132,7 +133,7 @@ exports.login = async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'secretKey',
       { expiresIn: '24h' }
     );
@@ -147,7 +148,8 @@ exports.login = async (req, res) => {
       user: {
         id: user.id,
         username: user.username,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
   } catch (error) {

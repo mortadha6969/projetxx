@@ -137,9 +137,12 @@ const apiService = {
   user: {
     getProfile: async () => {
       try {
+        console.log('Fetching user profile...');
         const response = await apiClient.get(API_ENDPOINTS.USER_PROFILE);
+        console.log('User profile response:', response.data);
         return response.data;
       } catch (error) {
+        console.error('Error fetching user profile:', error);
         throw error.response?.data || error;
       }
     },
@@ -312,6 +315,108 @@ const apiService = {
         const response = await apiClient.post(API_ENDPOINTS.CREATE_TRANSACTION, transactionData);
         return response.data;
       } catch (error) {
+        throw error.response?.data || error;
+      }
+    },
+  },
+
+  // Admin methods
+  admin: {
+    getUsers: async () => {
+      try {
+        // Try the debug endpoint first
+        try {
+          console.log('Trying debug admin users endpoint...');
+          const response = await axios.get(API_ENDPOINTS.DEBUG_ADMIN_USERS);
+          console.log('Debug admin users response:', response.data);
+          return response.data;
+        } catch (debugError) {
+          console.error('Debug admin users error:', debugError);
+          // Fall back to the regular endpoint
+          console.log('Falling back to regular admin users endpoint...');
+          const response = await apiClient.get(API_ENDPOINTS.ADMIN_USERS);
+          return response.data;
+        }
+      } catch (error) {
+        console.error('Admin getUsers error:', error);
+        throw error.response?.data || error;
+      }
+    },
+
+    getUserById: async (id) => {
+      try {
+        const response = await apiClient.get(API_ENDPOINTS.ADMIN_USER_DETAILS(id));
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || error;
+      }
+    },
+
+    updateUser: async (id, userData) => {
+      try {
+        const response = await apiClient.put(API_ENDPOINTS.ADMIN_USER_DETAILS(id), userData);
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || error;
+      }
+    },
+
+    deleteUser: async (id) => {
+      try {
+        const response = await apiClient.delete(API_ENDPOINTS.ADMIN_USER_DETAILS(id));
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || error;
+      }
+    },
+
+    getCampaigns: async () => {
+      try {
+        // Try the debug endpoint first
+        try {
+          console.log('Trying debug admin campaigns endpoint...');
+          const response = await axios.get(API_ENDPOINTS.DEBUG_ADMIN_CAMPAIGNS);
+          console.log('Debug admin campaigns response:', response.data);
+          return response.data;
+        } catch (debugError) {
+          console.error('Debug admin campaigns error:', debugError);
+          // Fall back to the regular endpoint
+          console.log('Falling back to regular admin campaigns endpoint...');
+          const response = await apiClient.get(API_ENDPOINTS.ADMIN_CAMPAIGNS);
+          return response.data;
+        }
+      } catch (error) {
+        console.error('Admin getCampaigns error:', error);
+        throw error.response?.data || error;
+      }
+    },
+
+    deleteCampaign: async (id) => {
+      try {
+        const response = await apiClient.delete(API_ENDPOINTS.ADMIN_CAMPAIGN_DETAILS(id));
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || error;
+      }
+    },
+
+    getDashboardStats: async () => {
+      try {
+        // Try the debug endpoint first
+        try {
+          console.log('Trying debug admin dashboard endpoint...');
+          const response = await axios.get(API_ENDPOINTS.DEBUG_ADMIN_DASHBOARD);
+          console.log('Debug admin dashboard response:', response.data);
+          return response.data;
+        } catch (debugError) {
+          console.error('Debug admin dashboard error:', debugError);
+          // Fall back to the regular endpoint
+          console.log('Falling back to regular admin dashboard endpoint...');
+          const response = await apiClient.get(API_ENDPOINTS.ADMIN_DASHBOARD);
+          return response.data;
+        }
+      } catch (error) {
+        console.error('Admin getDashboardStats error:', error);
         throw error.response?.data || error;
       }
     },

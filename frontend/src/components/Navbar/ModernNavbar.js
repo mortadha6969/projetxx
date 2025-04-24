@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../utils/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiMenu, FiX, FiUser, FiLogOut, FiLogIn, FiHome, FiGrid, FiPlusCircle } from "react-icons/fi";
+import { FiMenu, FiX, FiUser, FiLogOut, FiLogIn, FiHome, FiGrid, FiPlusCircle, FiShield } from "react-icons/fi";
 
 const ModernNavbar = () => {
   const { isAuthenticated, currentUser, logout } = useAuth();
@@ -34,12 +34,24 @@ const ModernNavbar = () => {
     { name: "Home", path: "/", icon: <FiHome /> },
     { name: "Campaigns", path: "/campaigns", icon: <FiGrid /> },
     { name: "Create", path: "/create-campaign", requiresAuth: true, icon: <FiPlusCircle /> },
+    { name: "Admin", path: "/admin", requiresAdmin: true, icon: <FiShield /> },
   ];
 
-  // Filter nav items based on authentication status
+  // Debug user role for admin menu
+  console.log('Navbar - currentUser:', currentUser);
+  console.log('Navbar - user role:', currentUser?.role);
+  console.log('Navbar - isAuthenticated:', isAuthenticated);
+
+  // Filter nav items based on authentication status and role
   const filteredNavItems = navItems.filter(
-    (item) => !item.requiresAuth || (item.requiresAuth && isAuthenticated)
+    (item) =>
+      (!item.requiresAuth && !item.requiresAdmin) ||
+      (item.requiresAuth && isAuthenticated && !item.requiresAdmin) ||
+      (item.requiresAdmin && isAuthenticated && currentUser?.role === 'admin')
   );
+
+  // Debug filtered nav items
+  console.log('Navbar - filteredNavItems:', filteredNavItems);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -108,6 +120,18 @@ const ModernNavbar = () => {
                     <FiUser className="mr-1.5" />
                     {currentUser?.username || "Profile"}
                   </Link>
+
+                  {/* Admin Dashboard Link - Only visible for admins */}
+                  {currentUser?.role === 'admin' && (
+                    <Link
+                      to="/admin"
+                      className="px-4 py-2 mx-1 text-sm font-medium rounded-md text-purple-700 hover:bg-purple-100 transition-colors duration-200 flex items-center"
+                    >
+                      <FiShield className="mr-1.5" />
+                      Admin
+                    </Link>
+                  )}
+
                   <button
                     onClick={logout}
                     className="px-4 py-2 mx-1 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 transition-colors duration-200 flex items-center"
@@ -192,6 +216,18 @@ const ModernNavbar = () => {
                       <FiUser className="mr-2" />
                       {currentUser?.username || "Profile"}
                     </Link>
+
+                    {/* Admin Dashboard Link - Only visible for admins */}
+                    {currentUser?.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        className="px-4 py-3 text-sm font-medium rounded-md text-purple-700 hover:bg-gray-100 transition-colors duration-200 flex items-center"
+                      >
+                        <FiShield className="mr-2" />
+                        Admin Dashboard
+                      </Link>
+                    )}
+
                     <button
                       onClick={logout}
                       className="px-4 py-3 mt-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 transition-colors duration-200 flex items-center"
