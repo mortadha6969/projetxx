@@ -51,25 +51,17 @@ const User = sequelize.define('User', {
         allowNull: true
     }
 }, {
-    hooks: {
-        beforeCreate: async (user) => {
-            if (user.password) {
-                const salt = await bcrypt.genSalt(10);
-                user.password = await bcrypt.hash(user.password, salt);
-            }
-        },
-        beforeUpdate: async (user) => {
-            if (user.changed('password')) {
-                const salt = await bcrypt.genSalt(10);
-                user.password = await bcrypt.hash(user.password, salt);
-            }
-        }
-    }
+    // Removed password hashing hooks to avoid double hashing
+    // Password hashing is now handled in the controller
 });
 
 // Instance method to compare password
 User.prototype.comparePassword = async function(candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
 };
+
+// Define associations - these will be set up in the index.js file
+// User.hasMany(Campaign, { foreignKey: 'userId', as: 'campaigns' });
+// User.hasMany(Transaction, { foreignKey: 'donor_id', as: 'donations' });
 
 module.exports = User;

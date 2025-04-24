@@ -48,6 +48,14 @@ const Campaign = sequelize.define('Campaign', {
             min: 0
         }
     },
+    donors: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+        validate: {
+            min: 0
+        }
+    },
     endDate: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -143,5 +151,9 @@ const Campaign = sequelize.define('Campaign', {
         }
     }
 });
+
+// Define associations - these will be set up in the index.js file
+// Campaign.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+// Campaign.hasMany(Transaction, { foreignKey: 'campaign_id', as: 'donations' });
 
 module.exports = Campaign;

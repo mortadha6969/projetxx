@@ -1,35 +1,71 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar/Navbar";
-import WebsiteFooter from "./components/WebsiteFooter/WebsiteFooter.js";
-import Home from "./Interfaces/Home/Home";
-import RegisterPage from "./Interfaces/RegisterPage/RegisterPage.js";
-import LoginPage from "./Interfaces/LoginPage/LoginPage";
-import ProfileAccountPage from "./Interfaces/ProfileAccountPage/ProfileAccountPage.js";
-import CampaignPage from "./Interfaces/CampaignPage/CampaignPage";
-import CreateCampaignPage from "./Interfaces/CreateCampaignPage/CreateCampaignPage"; // Correct import
+import { AuthProvider } from "./utils/AuthContext";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// Components
+import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+import ModernNavbar from "./components/Navbar/ModernNavbar";
+import ModernFooter from "./components/WebsiteFooter/ModernFooter";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
+import LoadingSpinner from "./components/UI/LoadingSpinner";
+
+// Lazy-loaded pages for better performance
+const Home = lazy(() => import("./pages/Home/SimpleHome"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage/ModernRegisterPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage/ModernLoginPage"));
+const ProfileAccountPage = lazy(() => import("./Interfaces/ProfileAccountPage/ProfileAccountPage"));
+const CampaignPage = lazy(() => import("./pages/CampaignPage/CampaignPage"));
+const CreateCampaignPage = lazy(() => import("./Interfaces/CreateCampaignPage/CreateCampaignPage"));
+const NotFound = lazy(() => import("./pages/NotFound/NotFound"));
 
 function App() {
   return (
-    <div className="App-Container">
+    <AuthProvider>
       <Router>
-        <Navbar />
-        <main>
-          <ErrorBoundary>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/campaign" element={<CampaignPage />} />
-              <Route path="/Register" element={<RegisterPage />} />
-              <Route path="/Login" element={<LoginPage />} />
-              <Route path="/ProfileAccountPage" element={<ProfileAccountPage />} />
-              <Route path="/create-campaign" element={<CreateCampaignPage />} /> {/* Correct route path */}
-            </Routes>
-          </ErrorBoundary>
-        </main>
-        <WebsiteFooter />
+        <div className="flex flex-col min-h-screen bg-gray-50">
+          <ModernNavbar />
+          <main className="flex-grow container mx-auto px-4 py-8 md:px-6 mt-16">
+            <ErrorBoundary>
+              <Suspense fallback={<LoadingSpinner />}>
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/" element={<Home />} />
+                  <Route path="/campaigns" element={<CampaignPage />} />
+                  <Route path="/campaign/:id" element={<CampaignPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+
+                  {/* Protected routes */}
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <ProfileAccountPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/create-campaign"
+                    element={
+                      <ProtectedRoute>
+                        <CreateCampaignPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* 404 route */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </ErrorBoundary>
+          </main>
+          <ModernFooter />
+        </div>
+        <ToastContainer position="top-right" autoClose={5000} />
       </Router>
-    </div>
+    </AuthProvider>
   );
 }
 

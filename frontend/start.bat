@@ -1,0 +1,6 @@
+@echo off
+echo Installing dependencies...
+call npm install axios react-router-dom react-hook-form react-icons react-toastify
+
+echo Starting servers...
+node start-servers.js

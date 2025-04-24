@@ -1,5 +1,5 @@
 // controllers/userController.js
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Campaign = require('../models/Campaign');
@@ -11,18 +11,21 @@ exports.register = async (req, res) => {
     const { username, email, password, phone, birthdate } = req.body;
 
     // Validate required fields
-    if (!username || !email || !password || !phone || !birthdate) {
+    if (!username || !email || !password) {
       return res.status(400).json({
         status: 'error',
-        message: 'All fields are required: username, email, password, phone, and birthdate'
+        message: 'Required fields: username, email, and password'
       });
     }
 
     // Create user with validation
+    // Hash the password before creating the user
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await User.create({
       username,
       email,
-      password: await bcrypt.hash(password, 10),
+      password: hashedPassword,
       phone,
       birthdate
     });
@@ -87,8 +90,11 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('Login attempt:', { email, password: '********' });
+
     // Input validation
     if (!email || !password) {
+      console.log('Missing email or password');
       return res.status(400).json({
         status: 'error',
         message: 'Email and password are required'
@@ -103,15 +109,21 @@ exports.login = async (req, res) => {
 
     // If no user found with that email
     if (!user) {
+      console.log('User not found with email:', email);
       return res.status(401).json({
         status: 'error',
         message: 'Invalid email or password'
       });
     }
 
+    console.log('User found:', { id: user.id, username: user.username, email: user.email });
+
     // Compare password
     const isValidPassword = await bcrypt.compare(password, user.password);
+    console.log('Password validation result:', isValidPassword);
+
     if (!isValidPassword) {
+      console.log('Invalid password for user:', email);
       return res.status(401).json({
         status: 'error',
         message: 'Invalid email or password'
@@ -124,6 +136,8 @@ exports.login = async (req, res) => {
       process.env.JWT_SECRET || 'secretKey',
       { expiresIn: '24h' }
     );
+
+    console.log('Login successful for user:', email);
 
     // Return success response without password
     res.json({
@@ -305,7 +319,8 @@ exports.changePassword = async (req, res) => {
     }
 
     // Update password
-    user.password = newPassword; // The beforeUpdate hook will hash the password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
     await user.save();
 
     res.status(200).json({

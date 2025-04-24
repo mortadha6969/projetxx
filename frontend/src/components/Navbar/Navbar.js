@@ -1,19 +1,32 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./Navbar.css";
-import { Link, useNavigate } from "react-router-dom";
-
-// Helper function to check if user is logged in
-const isLoggedIn = () => {
-  return !!localStorage.getItem('token'); // Return true if token exists, otherwise false
-};
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../utils/AuthContext";
 
 const Navbar = () => {
+  const { isAuthenticated, currentUser, logout } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const navItems = [
     { name: "Home", path: "/" },
-    { name: "Campaign", path: "/campaign" },
-    { name: "Fundraiser", path: "/fundraiser" },
-    { name: "Blog", path: "/blog" },
+    { name: "Campaigns", path: "/campaign" },
+    { name: "Create Campaign", path: "/create-campaign", requiresAuth: true },
   ];
+
+  // Filter nav items based on authentication status
+  const filteredNavItems = navItems.filter(item =>
+    !item.requiresAuth || (item.requiresAuth && isAuthenticated)
+  );
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
 
   return (
     <nav className="navbar-container">
@@ -21,8 +34,12 @@ const Navbar = () => {
         <div className="nav-left">
           <Logo />
           <div className="nav-buttons-up">
-            {navItems.map((item, index) => (
-              <Link className="Min-Menu-up" to={item.path} key={index}>
+            {filteredNavItems.map((item, index) => (
+              <Link
+                className={`Min-Menu-up ${location.pathname === item.path ? 'active' : ''}`}
+                to={item.path}
+                key={index}
+              >
                 <button className="nav-button-up">
                   {item.name}
                 </button>
@@ -31,20 +48,64 @@ const Navbar = () => {
           </div>
         </div>
         <div className="nav-right">
-          {!isLoggedIn() && <LoginButton />}
-          {!isLoggedIn() && <RegisterButton />}
-          {isLoggedIn() && <LogoutButton />}
-          {isLoggedIn() && <ProfileButton />}
+          {!isAuthenticated ? (
+            <>
+              <LoginButton />
+              <RegisterButton />
+            </>
+          ) : (
+            <>
+              <LogoutButton onLogout={logout} />
+              <ProfileButton username={currentUser?.username} />
+            </>
+          )}
+        </div>
+
+        {/* Mobile menu toggle button */}
+        <div className="mobile-menu-toggle" onClick={toggleMobileMenu}>
+          <span className={`hamburger ${mobileMenuOpen ? 'open' : ''}`}></span>
         </div>
       </div>
-      <div className="nav-buttons-down">
-        {navItems.map((item, index) => (
-          <Link className="Min-Menu-down" to={item.path} key={index}>
+
+      {/* Mobile menu */}
+      <div className={`nav-buttons-down ${mobileMenuOpen ? 'open' : ''}`}>
+        {filteredNavItems.map((item, index) => (
+          <Link
+            className={`Min-Menu-down ${location.pathname === item.path ? 'active' : ''}`}
+            to={item.path}
+            key={index}
+          >
             <button className="nav-button-item">
               {item.name}
             </button>
           </Link>
         ))}
+
+        {/* Add auth buttons to mobile menu */}
+        <div className="mobile-auth-buttons">
+          {!isAuthenticated ? (
+            <>
+              <Link className="Min-Menu-down" to="/login">
+                <button className="nav-button-item">Login</button>
+              </Link>
+              <Link className="Min-Menu-down" to="/register">
+                <button className="nav-button-item">Register</button>
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link className="Min-Menu-down" to="/profile">
+                <button className="nav-button-item">Profile</button>
+              </Link>
+              <button
+                className="nav-button-item logout-mobile"
+                onClick={logout}
+              >
+                Logout
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </nav>
   );
@@ -63,7 +124,7 @@ const Logo = () => {
 
 const LoginButton = () => {
   return (
-    <Link className="button3" to="/Login">
+    <Link className="button3" to="/login">
       <button className="Login-button">
         <span className="Login-text">Login</span>
         <span className="Login-icon">→</span>
@@ -74,7 +135,7 @@ const LoginButton = () => {
 
 const RegisterButton = () => {
   return (
-    <Link className="button1" to="/Register">
+    <Link className="button1" to="/register">
       <button className="Register-button">
         <span className="Register-text">Register</span>
         <span className="Register-icon">→</span>
@@ -83,20 +144,22 @@ const RegisterButton = () => {
   );
 };
 
-const ProfileButton = () => {
+const ProfileButton = ({ username }) => {
   return (
-    <Link className="button2" to="/ProfileAccountPage">
-      <button className="Profile-button">
+    <Link className="button2" to="/profile">
+      <button className="Profile-button" title={username || 'Profile'}>
         <span className="Profile-icon">👤</span>
+        {username && <span className="username-display">{username}</span>}
       </button>
     </Link>
   );
 };
 
-const LogoutButton = () => {
+const LogoutButton = ({ onLogout }) => {
   const navigate = useNavigate();
+
   const handleLogout = () => {
-    localStorage.clear();
+    onLogout();
     navigate('/');
   };
 

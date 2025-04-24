@@ -3,29 +3,92 @@
  * This file contains all the API endpoints used in the application
  */
 
-const API_BASE_URL = 'http://localhost:3001';
+// Get the API base URL from environment variables or use default
+// The backend server is running on port 3001 or 3002 if 3001 is in use
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
+// Function to check if the primary API is available, otherwise use the fallback
+const checkApiAvailability = async () => {
+  try {
+    // Try the primary API URL
+    const response = await fetch(`${API_BASE_URL}/health-check`, {
+      method: 'HEAD',
+      timeout: 2000
+    });
+    return API_BASE_URL;
+  } catch (error) {
+    console.log('Primary API not available, trying fallback...');
+    // Try the fallback API URL
+    const fallbackUrl = API_BASE_URL.replace('3001', '3002');
+    try {
+      await fetch(`${fallbackUrl}/health-check`, {
+        method: 'HEAD',
+        timeout: 2000
+      });
+      console.log('Using fallback API URL:', fallbackUrl);
+      return fallbackUrl;
+    } catch (fallbackError) {
+      console.log('Fallback API not available either, using primary URL');
+      return API_BASE_URL;
+    }
+  }
+};
+
+// Use the primary API URL for now, we'll check availability when making requests
+let ACTIVE_API_URL = API_BASE_URL;
+
+// Export the checkApiAvailability function
+export { checkApiAvailability };
+
+// API endpoints object
 export const API_ENDPOINTS = {
   // Auth endpoints
-  LOGIN: `${API_BASE_URL}/users/login`,
-  REGISTER: `${API_BASE_URL}/users/register`,
-  
+  LOGIN: `${ACTIVE_API_URL}/users/login`,
+  REGISTER: `${ACTIVE_API_URL}/users/register`,
+
   // User endpoints
-  USER_PROFILE: `${API_BASE_URL}/users/profile`,
-  UPDATE_PROFILE: `${API_BASE_URL}/users/profile`,
-  CHANGE_PASSWORD: `${API_BASE_URL}/users/change-password`,
-  
+  USER_PROFILE: `${ACTIVE_API_URL}/users/profile`,
+  UPDATE_PROFILE: `${ACTIVE_API_URL}/users/profile`,
+  CHANGE_PASSWORD: `${ACTIVE_API_URL}/users/change-password`,
+
   // Campaign endpoints
-  CAMPAIGNS: `${API_BASE_URL}/campaigns`,
-  CAMPAIGN_DETAILS: (id) => `${API_BASE_URL}/campaigns/${id}`,
-  USER_CAMPAIGNS: `${API_BASE_URL}/campaigns/user`,
-  
+  CAMPAIGNS: `${ACTIVE_API_URL}/campaigns`,
+  CAMPAIGN_DETAILS: (id) => `${ACTIVE_API_URL}/campaigns/${id}`,
+  USER_CAMPAIGNS: `${ACTIVE_API_URL}/campaigns/user`,
+  CREATE_CAMPAIGN: `${ACTIVE_API_URL}/campaigns`,
+  UPDATE_CAMPAIGN: (id) => `${ACTIVE_API_URL}/campaigns/${id}`,
+  DELETE_CAMPAIGN: (id) => `${ACTIVE_API_URL}/campaigns/${id}`,
+
   // Transaction endpoints
-  TRANSACTIONS: `${API_BASE_URL}/transactions`,
-  USER_TRANSACTIONS: `${API_BASE_URL}/transactions/user`,
-  
+  TRANSACTIONS: `${ACTIVE_API_URL}/transactions`,
+  USER_TRANSACTIONS: `${ACTIVE_API_URL}/transactions/user`,
+  CREATE_TRANSACTION: `${ACTIVE_API_URL}/transactions`,
+
   // File uploads
-  UPLOADS: `${API_BASE_URL}/uploads`
+  UPLOADS: `${ACTIVE_API_URL}/uploads`,
+
+  // Health check
+  HEALTH_CHECK: `${ACTIVE_API_URL}/health-check`
+};
+
+// Helper function to create headers with authentication
+export const createAuthHeader = (token) => {
+  return {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  };
+};
+
+// Helper function to create multipart form headers with authentication
+export const createMultipartAuthHeader = (token) => {
+  return {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data'
+    }
+  };
 };
 
 export default API_ENDPOINTS;

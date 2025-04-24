@@ -1,17 +1,37 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../utils/AuthContext';
 import './Login.css';
 
 const Login = () => {
+  // Pre-fill with test credentials for easier testing
   const [credentials, setCredentials] = useState({
-    email: '',
-    password: ''
+    email: 'user@gmail.com',
+    password: 'password123'
   });
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get login function and loading state from auth context
+  const { login, isAuthenticated, isLoading, error: authError } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Redirect to the page the user was trying to access, or home
+      const from = location.state?.from?.pathname || '/';
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, location]);
+
+  // Update local error state when auth error changes
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+    }
+  }, [authError]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,26 +43,36 @@ const Login = () => {
     }
 
     try {
-      setIsLoading(true);
-      
-      // Make sure the URL is correct for your API endpoint
-      const response = await axios.post('http://localhost:3000/users/login', {
+      console.log('Submitting login with credentials:', {
         email: credentials.email,
-        password: credentials.password
+        password: '********' // Don't log actual password
       });
-      
-      console.log(response);  // For debugging purposes, check the response
 
-      // Store token and username in localStorage
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('username', response.data.user.username);
+      // Use the login function from auth context
+      await login(credentials);
+      console.log('Login successful, redirect will happen via useEffect');
 
-      // Redirect to the profile page after successful login
-      navigate('/');  // You can change this to your desired route
+      // No need to manually redirect - the useEffect will handle it
     } catch (err) {
-      setError('Invalid email or password');
-    } finally {
-      setIsLoading(false);
+      // Most error handling is done through the auth context
+      console.error('Login component caught error:', err);
+
+      // If there's a specific error message we want to display
+      if (err && err.message) {
+        setError(err.message);
+      } else if (typeof err === 'string') {
+        setError(err);
+      } else {
+        // Default error message
+        setError('Login failed. Please check your credentials and try again.');
+      }
+
+      // Log additional debugging information
+      if (err && err.status === 401) {
+        console.log('Authentication failed. Please check your credentials.');
+      } else if (err && err.status >= 500) {
+        console.log('Server error. Please try again later.');
+      }
     }
   };
 
@@ -94,7 +124,7 @@ const Login = () => {
 
         <div className="additional-options">
           <a href="/forgot-password">Forgot Password?</a>
-          <span>New user? <a href="/Register">Create account</a></span>
+          <span>New user? <a href="/register">Create account</a></span>
         </div>
       </form>
     </div>

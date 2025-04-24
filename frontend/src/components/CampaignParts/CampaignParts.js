@@ -56,7 +56,7 @@ const CampaignParts = () => {
       // You can add additional logic for donation here
     } else {
       // User is not logged in, redirect to login page
-      navigate("/Login");
+      navigate("/login");
     }
   };
 
@@ -65,7 +65,7 @@ const CampaignParts = () => {
     if (isLoggedIn()) {
       navigate("/create-campaign");  // This should match the path of your Create Campaign page
     } else {
-      navigate("/Login");  // Redirect to login if not logged in
+      navigate("/login");  // Redirect to login if not logged in
     }
   };
 

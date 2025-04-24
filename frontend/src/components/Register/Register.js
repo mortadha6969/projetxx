@@ -1,18 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../utils/AuthContext';
 import './Register.css';
 
 const Register = () => {
+  const navigate = useNavigate();
+  const { register, isAuthenticated, isLoading, error: authError } = useAuth();
+
+  // Pre-fill with test data for easier testing
+  // Generate a unique username and email with a timestamp to avoid conflicts
+  const timestamp = new Date().getTime().toString().slice(-6);
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    phone: '',
-    birthdate: '',
-    password: '',
-    confirmPassword: ''
+    username: `user${timestamp}`,
+    email: `user${timestamp}@gmail.com`,
+    phone: '12345678',
+    birthdate: '1990-01-01',
+    password: 'Password123!',
+    confirmPassword: 'Password123!'
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Update local error state when auth error changes
+  useEffect(() => {
+    if (authError) {
+      setErrors(prev => ({ ...prev, server: authError }));
+    }
+  }, [authError]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -38,7 +60,7 @@ const Register = () => {
     if (!formData.phone) {
       newErrors.phone = 'Phone number is required';
     } else if (!phoneRegex.test(formData.phone)) {
-      newErrors.phone = 'Invalid phone number (10 digits required)';
+      newErrors.phone = 'Invalid phone number (8 digits required)';
     }
 
     // Birthdate validation
@@ -70,21 +92,29 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       try {
-        const response = await fetch('http://localhost:3000/users/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
+        console.log('Attempting registration with:', {
+          username: formData.username,
+          email: formData.email,
+          // Don't log the password
         });
-  
-        const data = await response.json();
-        
-        if (response.ok) {
-          console.log('Registration successful:', data);
+
+        // Prepare the data for registration
+        const userData = {
+          username: formData.username,
+          email: formData.email,
+          phone: formData.phone,
+          birthdate: formData.birthdate,
+          password: formData.password
+        };
+
+        // Use the register function from auth context
+        const result = await register(userData);
+
+        if (result) {
+          console.log('Registration successful:', result);
           setIsSubmitted(true);
           setFormData({
             username: '',
@@ -94,18 +124,40 @@ const Register = () => {
             password: '',
             confirmPassword: ''
           });
-        } else {
-          console.error('Registration failed:', data.error);
-          setErrors({ server: data.error }); // Show backend error
+
+          // Redirect to login after a delay
+          setTimeout(() => {
+            navigate('/login');
+          }, 3000);
         }
-        
       } catch (error) {
         console.error('Error submitting form:', error);
-        setErrors({ server: 'Server error. Please try again later.' });
+
+        // Handle specific error types
+        if (error && error.errors) {
+          // Handle validation errors
+          const newErrors = {};
+          error.errors.forEach(err => {
+            if (err.path === 'username') {
+              newErrors.username = 'This username is already taken. Please choose another.';
+            } else if (err.path === 'email') {
+              newErrors.email = 'This email is already registered. Please use another email or login.';
+            } else {
+              newErrors[err.path] = err.message;
+            }
+          });
+          setErrors(prev => ({ ...prev, ...newErrors }));
+        } else if (error && error.message) {
+          // Handle general error message
+          setErrors(prev => ({ ...prev, server: error.message }));
+        } else {
+          // Handle unknown error
+          setErrors(prev => ({ ...prev, server: 'Registration failed. Please try again.' }));
+        }
       }
     }
   };
-  
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -157,7 +209,7 @@ const Register = () => {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              
+
               required
             />
             {errors.phone && <span className="error">{errors.phone}</span>}
@@ -209,9 +261,15 @@ const Register = () => {
             {errors.confirmPassword && <span className="error">{errors.confirmPassword}</span>}
           </div>
 
-          <button href="/ProfileAccountPage" type="submit" className="submit-btn">
-            Create Account
+          <button
+            type="submit"
+            className="submit-btn"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Creating Account...' : 'Create Account'}
           </button>
+
+          {errors.server && <div className="error server-error">{errors.server}</div>}
 
           <div className="login-prompt">
             Already have an account? <a href="/login">Log in here</a>
