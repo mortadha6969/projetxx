@@ -64,11 +64,12 @@ const CampaignDetail = ({ campaign }) => {
 
   // Format currency
   const formatCurrency = (amount) => {
+    // Format with Intl.NumberFormat but replace $ with DT
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount).replace('$', '') + ' DT';
   };
 
   // Format time remaining
@@ -90,7 +91,7 @@ const CampaignDetail = ({ campaign }) => {
   const handleDonate = (e) => {
     e.preventDefault();
     // In a real app, this would submit the donation to the API
-    alert(`Thank you for your donation of $${donationAmount}!`);
+    alert(`Thank you for your donation of ${donationAmount} DT!`);
   };
 
   return (
@@ -230,13 +231,24 @@ const CampaignDetail = ({ campaign }) => {
             <h1 className="text-2xl font-bold text-gray-900 mb-2">{campaign.title}</h1>
             <div className="flex items-center mb-4">
               <img
-                src={campaign.user?.profileImage || "https://source.unsplash.com/random/100x100/?profile"}
+                src={getFullImageUrl(campaign.user?.profileImage) || "/images/question-mark-profile.svg"}
                 alt={campaign.user?.username || "Campaign Creator"}
-                className="w-8 h-8 rounded-full mr-2"
+                className="w-10 h-10 rounded-full mr-3 border-2 border-primary-100 object-cover bg-gray-100"
+                onError={(e) => {
+                  e.target.onerror = null; // Prevent infinite loop
+                  e.target.src = "/images/question-mark-profile.svg";
+                }}
               />
-              <span className="text-gray-600">
-                by {campaign.user?.username || "Anonymous"}
-              </span>
+              <div>
+                <div className="text-gray-800 font-medium">
+                  {campaign.user?.username ? `by ${campaign.user.username}` : "Anonymous"}
+                </div>
+                {campaign.user?.firstName && campaign.user?.lastName && (
+                  <div className="text-gray-500 text-sm">
+                    {campaign.user.firstName} {campaign.user.lastName}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Campaign Stats */}
@@ -303,14 +315,14 @@ const CampaignDetail = ({ campaign }) => {
                           : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                       }`}
                     >
-                      ${amount}
+                      {amount} DT
                     </button>
                   ))}
                 </div>
                 <div className="mb-4">
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500">$</span>
+                      <span className="text-gray-500">DT</span>
                     </div>
                     <input
                       type="number"
@@ -323,7 +335,7 @@ const CampaignDetail = ({ campaign }) => {
                       placeholder="Enter amount"
                     />
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500">USD</span>
+                      <span className="text-gray-500">TND</span>
                     </div>
                   </div>
                 </div>

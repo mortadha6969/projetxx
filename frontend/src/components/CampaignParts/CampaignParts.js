@@ -23,11 +23,12 @@ const getFullImageUrl = (path) => {
 
 // Helper function to format currency
 const formatCurrency = (amount) => {
+  // Format with Intl.NumberFormat but replace $ with DT
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(amount).replace('$', '') + ' DT';
 };
 
 // Helper function to calculate progress percentage

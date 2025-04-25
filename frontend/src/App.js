@@ -18,9 +18,12 @@ const Home = lazy(() => import("./pages/Home/SimpleHome"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage/ModernRegisterPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage/ModernLoginPage"));
 const ProfileAccountPage = lazy(() => import("./pages/ProfilePage/ModernProfilePage"));
+const ChangePassword = lazy(() => import("./pages/ChangePassword/ChangePassword"));
 const CampaignPage = lazy(() => import("./pages/CampaignPage/CampaignPage"));
 const CreateCampaignPage = lazy(() => import("./pages/CreateCampaignPage/CreateCampaignPage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard/AdminDashboard"));
+const TermsPage = lazy(() => import("./pages/Terms/TermsPage"));
+const PrivacyPage = lazy(() => import("./pages/Privacy/PrivacyPage"));
 const NotFound = lazy(() => import("./pages/NotFound/NotFound"));
 
 function App() {
@@ -39,6 +42,8 @@ function App() {
                   <Route path="/campaign/:id" element={<CampaignPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/login" element={<LoginPage />} />
+                  <Route path="/terms" element={<TermsPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
 
                   {/* Protected routes */}
                   <Route
@@ -46,6 +51,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <ProfileAccountPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/change-password"
+                    element={
+                      <ProtectedRoute>
+                        <ChangePassword />
                       </ProtectedRoute>
                     }
                   />

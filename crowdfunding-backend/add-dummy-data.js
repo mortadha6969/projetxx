@@ -28,6 +28,7 @@ async function addDummyData() {
       password: await bcrypt.hash('Admin123!', 10),
       firstName: 'Admin',
       lastName: 'User',
+      profileImage: '/uploads/default-admin.jpg',
       role: 'admin'
     });
 
@@ -41,6 +42,7 @@ async function addDummyData() {
         password: await bcrypt.hash('Password123!', 10),
         firstName: 'John',
         lastName: 'Doe',
+        profileImage: '/uploads/default-user-1.jpg',
         role: 'user'
       }),
       User.create({
@@ -49,6 +51,7 @@ async function addDummyData() {
         password: await bcrypt.hash('Password123!', 10),
         firstName: 'Jane',
         lastName: 'Smith',
+        profileImage: '/uploads/default-user-2.jpg',
         role: 'user'
       }),
       User.create({
@@ -57,6 +60,7 @@ async function addDummyData() {
         password: await bcrypt.hash('Password123!', 10),
         firstName: 'Bob',
         lastName: 'Johnson',
+        profileImage: '/uploads/default-user-3.jpg',
         role: 'user'
       })
     ]);

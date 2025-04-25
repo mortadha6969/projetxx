@@ -1,13 +1,22 @@
 const Campaign = require('../models/Campaign');
+const User = require('../models/User');
 const path = require('path');
 
 exports.getAllCampaigns = async (req, res) => {
   try {
     const campaigns = await Campaign.findAll({
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username', 'firstName', 'lastName', 'profileImage']
+        }
+      ],
       order: [['createdAt', 'DESC']]
     });
     res.json(campaigns);
   } catch (error) {
+    console.error('Error fetching all campaigns:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -128,12 +137,24 @@ exports.updateCampaign = async (req, res) => {
 
 exports.getCampaignById = async (req, res) => {
   try {
-    const campaign = await Campaign.findByPk(req.params.id);
+    const campaign = await Campaign.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username', 'firstName', 'lastName', 'email', 'profileImage', 'role']
+        }
+      ]
+    });
+
     if (!campaign) {
       return res.status(404).json({ message: 'Campaign not found' });
     }
+
+    console.log('Campaign with user data:', JSON.stringify(campaign, null, 2));
     res.json(campaign);
   } catch (error) {
+    console.error('Error fetching campaign by ID:', error);
     res.status(500).json({ message: error.message });
   }
 };

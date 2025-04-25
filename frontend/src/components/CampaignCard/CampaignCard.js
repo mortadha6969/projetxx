@@ -24,11 +24,12 @@ const CampaignCard = ({ campaign }) => {
 
   // Format currency
   const formatCurrency = (amount) => {
+    // Format with Intl.NumberFormat but replace $ with DT
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount).replace('$', '') + ' DT';
   };
 
   // Format time remaining
@@ -57,11 +58,7 @@ const CampaignCard = ({ campaign }) => {
               Trending
             </div>
           )}
-          {campaign.files && campaign.files.length > 0 && (
-            <div className="bg-blue-500 text-white text-xs font-medium px-2 py-1 rounded-md">
-              {campaign.files.length + 1} Images
-            </div>
-          )}
+          {/* Removed image count badge */}
         </div>
       </div>
 

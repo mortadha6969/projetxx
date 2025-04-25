@@ -27,10 +27,10 @@ const ModernRegisterPage = () => {
                 <p className="mb-8 text-primary-100">
                   Create an account to start funding projects or launch your own campaign.
                 </p>
-                
+
                 <div className="space-y-4">
                   {benefits.map((benefit, index) => (
-                    <motion.div 
+                    <motion.div
                       key={index}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -42,23 +42,16 @@ const ModernRegisterPage = () => {
                     </motion.div>
                   ))}
                 </div>
-                
+
                 <div className="mt-12 pt-8 border-t border-primary-400/30">
-                  <div className="flex items-center">
-                    <img 
-                      src="https://source.unsplash.com/random/100x100/?portrait" 
-                      alt="User" 
-                      className="w-10 h-10 rounded-full mr-3"
-                    />
-                    <div>
-                      <p className="font-medium">"TrueFunding helped me raise $25,000 for my startup in just 3 weeks!"</p>
-                      <p className="text-sm text-primary-200 mt-1">— Sarah Johnson, Entrepreneur</p>
-                    </div>
+                  <div>
+                    <p className="font-medium">"TrueFunding helped me raise $25,000 for my startup in just 3 weeks!"</p>
+                    <p className="text-sm text-primary-200 mt-1">— Sarah Johnson, Entrepreneur</p>
                   </div>
                 </div>
               </motion.div>
             </div>
-            
+
             {/* Right side - Registration Form */}
             <div className="md:w-7/12 p-8">
               <motion.div
@@ -70,7 +63,7 @@ const ModernRegisterPage = () => {
                   <h1 className="text-2xl font-bold text-gray-900">Create Your Account</h1>
                   <p className="text-gray-600">Fill in your details to get started</p>
                 </div>
-                
+
                 <ModernRegister />
               </motion.div>
             </div>

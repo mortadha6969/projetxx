@@ -13,7 +13,7 @@ const Register = () => {
   const [formData, setFormData] = useState({
     username: `user${timestamp}`,
     email: `user${timestamp}@gmail.com`,
-    phone: '12345678',
+    phone: '12345678',  // Tunisian format without country code
     birthdate: '1990-01-01',
     password: 'Password123!',
     confirmPassword: 'Password123!'
@@ -39,7 +39,7 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\d{8}$/;
+    const phoneRegex = /^(\(\+216\)\s?)?\d{8}$/;
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
     // Username validation
@@ -60,7 +60,7 @@ const Register = () => {
     if (!formData.phone) {
       newErrors.phone = 'Phone number is required';
     } else if (!phoneRegex.test(formData.phone)) {
-      newErrors.phone = 'Invalid phone number (8 digits required)';
+      newErrors.phone = 'Invalid phone number (format: (+216) 12345678 or just 8 digits)';
     }
 
     // Birthdate validation
@@ -209,7 +209,7 @@ const Register = () => {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-
+              placeholder="(+216) 12345678"
               required
             />
             {errors.phone && <span className="error">{errors.phone}</span>}

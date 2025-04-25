@@ -142,7 +142,7 @@ const CreateCampaignForm = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="target">Target Amount ($)</label>
+            <label htmlFor="target">Target Amount (DT)</label>
             <input
               type="number"
               id="target"

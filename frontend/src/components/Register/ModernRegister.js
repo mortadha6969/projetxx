@@ -232,14 +232,14 @@ const ModernRegister = () => {
                 type="tel"
                 {...register("phone", {
                   pattern: {
-                    value: /^[0-9+\-\s()]*$/,
-                    message: "Invalid phone number",
+                    value: /^(\(\+216\)\s?)?\d{8}$/,
+                    message: "Invalid phone number (format: (+216) 12345678 or just 8 digits)",
                   },
                 })}
                 className={`block w-full pl-10 pr-3 py-2 border ${
                   errors.phone ? "border-red-300" : "border-gray-300"
                 } rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500`}
-                placeholder="(123) 456-7890"
+                placeholder="(+216) 12345678"
               />
             </div>
             {errors.phone && (

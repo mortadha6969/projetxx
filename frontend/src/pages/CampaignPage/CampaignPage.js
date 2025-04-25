@@ -24,6 +24,13 @@ const CampaignPage = () => {
           const response = await apiService.campaigns.getById(id);
           console.log('Campaign data received:', response);
 
+          // Log user information specifically
+          if (response && response.user) {
+            console.log('Campaign creator:', response.user);
+          } else {
+            console.log('No user data found in campaign response');
+          }
+
           // Log the files array specifically
           if (response && response.files) {
             console.log('Campaign files:', response.files);

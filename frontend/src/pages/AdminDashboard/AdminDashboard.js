@@ -29,14 +29,12 @@ const AdminDashboard = () => {
       return;
     }
 
-    // For now, allow access to the admin dashboard for debugging
-    // We'll check the role in the UI instead
-    /*
+    // Check if user is an admin
     if (currentUser && currentUser.role !== 'admin') {
+      console.log('User is not an admin, redirecting to home page');
       navigate('/');
       return;
     }
-    */
 
     // Fetch admin dashboard data
     const fetchAdminData = async () => {
@@ -275,7 +273,7 @@ const AdminDashboard = () => {
                       <div>
                         <p className="text-sm text-gray-500 font-medium">Total Donations</p>
                         <p className="text-2xl font-bold text-gray-800">
-                          ${(stats.totalDonated || 0).toLocaleString()}
+                          {(stats.totalDonated || 0).toLocaleString()} DT
                         </p>
                       </div>
                     </div>

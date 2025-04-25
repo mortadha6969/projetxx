@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../utils/AuthContext';
 import apiService from '../../utils/apiService';
@@ -171,9 +172,13 @@ const ModernProfilePage = () => {
                 <div className="flex flex-col items-center mb-6">
                   <div className="relative w-32 h-32 mb-4">
                     <img
-                      src={imagePreview || getFullImageUrl(user.profileImage) || `https://ui-avatars.com/api/?name=${user.username}&background=random&size=128`}
+                      src={imagePreview || getFullImageUrl(user.profileImage) || "/images/question-mark-profile.svg"}
                       alt={user.username}
                       className="w-full h-full object-cover rounded-full"
+                      onError={(e) => {
+                        e.target.onerror = null; // Prevent infinite loop
+                        e.target.src = "/images/question-mark-profile.svg";
+                      }}
                     />
                     <label
                       htmlFor="profileImage"
@@ -310,9 +315,13 @@ const ModernProfilePage = () => {
                 <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
                   <div className="w-32 h-32 rounded-full overflow-hidden">
                     <img
-                      src={getFullImageUrl(user.profileImage) || `https://ui-avatars.com/api/?name=${user.username}&background=random&size=128`}
+                      src={getFullImageUrl(user.profileImage) || "/images/question-mark-profile.svg"}
                       alt={user.username}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null; // Prevent infinite loop
+                        e.target.src = "/images/question-mark-profile.svg";
+                      }}
                     />
                   </div>
                   <div className="flex-1">
@@ -384,26 +393,22 @@ const ModernProfilePage = () => {
                     >
                       Edit Profile
                     </button>
-                    <button
-                      onClick={() => window.location.href = '/change-password'}
-                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                    <Link
+                      to="/change-password"
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors inline-block text-center"
                     >
                       Change Password
-                    </button>
+                    </Link>
 
-                    {/* Admin Dashboard Link - Always visible for debugging */}
-                    <button
-                      onClick={() => window.location.href = '/admin'}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-                    >
-                      Admin Dashboard
-                    </button>
-
-                    {/* Debug info */}
-                    <div className="mt-4 p-3 bg-gray-100 rounded-md text-sm">
-                      <p>User role: {user.role || 'undefined'}</p>
-                      <p>User ID: {user.id}</p>
-                    </div>
+                    {/* Admin Dashboard Link - Only visible for admins */}
+                    {user.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors inline-block text-center"
+                      >
+                        Admin Dashboard
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>
