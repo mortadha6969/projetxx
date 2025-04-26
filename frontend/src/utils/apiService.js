@@ -172,6 +172,18 @@ const apiService = {
         throw error.response?.data || error;
       }
     },
+
+    donate: async (donationData) => {
+      try {
+        console.log('Making donation with data:', donationData);
+        const response = await apiClient.post(API_ENDPOINTS.USER_DONATE, donationData);
+        console.log('Donation response:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Error making donation:', error);
+        throw error.response?.data || error;
+      }
+    },
   },
 
   // Campaign methods
@@ -318,6 +330,48 @@ const apiService = {
         throw error.response?.data || error;
       }
     },
+  },
+
+  // Konnect payment methods
+  konnect: {
+    initializePayment: async (paymentData) => {
+      try {
+        const response = await apiClient.post(API_ENDPOINTS.KONNECT_INIT_PAYMENT, paymentData);
+        return response.data;
+      } catch (error) {
+        console.error('Error initializing Konnect payment:', error);
+        throw error.response?.data || error;
+      }
+    },
+
+    getPaymentDetails: async (paymentRef) => {
+      try {
+        const response = await apiClient.get(API_ENDPOINTS.KONNECT_PAYMENT_DETAILS(paymentRef));
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || error;
+      }
+    },
+
+    verifyPayment: async (paymentRef, campaignId, amount) => {
+      try {
+        let url = `${API_ENDPOINTS.KONNECT_VERIFY_PAYMENT(paymentRef)}?`;
+
+        if (campaignId) {
+          url += `campaign=${campaignId}`;
+        }
+
+        if (amount) {
+          url += `${campaignId ? '&' : ''}amount=${amount}`;
+        }
+
+        console.log('Verification URL:', url);
+        const response = await apiClient.get(url);
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || error;
+      }
+    }
   },
 
   // Admin methods

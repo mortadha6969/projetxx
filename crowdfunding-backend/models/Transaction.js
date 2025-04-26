@@ -17,7 +17,7 @@ const Transaction = sequelize.define('Transaction', {
   },
   donorId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true, // Allow null for anonymous donations or test payments
     field: 'donor_id',
     references: {
       model: 'User',
@@ -36,6 +36,15 @@ const Transaction = sequelize.define('Transaction', {
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE'
+  },
+  paymentReference: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'payment_reference'
+  },
+  description: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
 }, {
   tableName: 'transactions',

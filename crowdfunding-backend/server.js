@@ -40,6 +40,7 @@ const campaignRoutes = require('./routes/campaignRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const debugAdminRoutes = require('./routes/debugAdminRoutes');
+const konnectRoutes = require('./routes/konnectRoutes');
 
 // Note: Middleware is imported and used in the route files
 
@@ -56,11 +57,13 @@ app.get('/health-check', (req, res) => {
 app.use('/users', userRoutes);
 app.use('/campaigns', campaignRoutes);
 app.use('/transactions', transactionRoutes);
+app.use('/konnect', konnectRoutes);
 
 // Versioned API routes (for future use)
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/campaigns', campaignRoutes);
 app.use('/api/v1/transactions', transactionRoutes);
+app.use('/api/v1/konnect', konnectRoutes);
 
 // Admin routes
 app.use('/admin', adminRoutes);

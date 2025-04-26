@@ -12,6 +12,15 @@ const CampaignPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Add a refresh counter to force re-fetching the campaign data
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
+  // Function to refresh the campaign data
+  const refreshCampaign = () => {
+    console.log('Refreshing campaign data...');
+    setRefreshCounter(prev => prev + 1);
+  };
+
   useEffect(() => {
     // If we have an ID, fetch the specific campaign
     if (id) {
@@ -21,6 +30,7 @@ const CampaignPage = () => {
           setError(null);
 
           // Use the API service to fetch campaign data
+          console.log(`Fetching campaign data for ID ${id} (refresh #${refreshCounter})`);
           const response = await apiService.campaigns.getById(id);
           console.log('Campaign data received:', response);
 
@@ -47,6 +57,16 @@ const CampaignPage = () => {
             }
           }
 
+          // Log donation information specifically
+          if (response) {
+            console.log('Campaign donation data:', {
+              donated: response.donated,
+              donors: response.donors,
+              target: response.target,
+              progress: ((response.donated / response.target) * 100).toFixed(2) + '%'
+            });
+          }
+
           setCampaign(response);
         } catch (err) {
           console.error('Error fetching campaign:', err);
@@ -61,7 +81,7 @@ const CampaignPage = () => {
 
       fetchCampaign();
     }
-  }, [id]);
+  }, [id, refreshCounter]); // Add refreshCounter to the dependency array
 
   if (loading) {
     return <LoadingSpinner />;

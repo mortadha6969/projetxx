@@ -24,6 +24,10 @@ const CreateCampaignPage = lazy(() => import("./pages/CreateCampaignPage/CreateC
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard/AdminDashboard"));
 const TermsPage = lazy(() => import("./pages/Terms/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/Privacy/PrivacyPage"));
+const PaymentSuccessPage = lazy(() => import("./pages/Payment/PaymentSuccessPage"));
+const PaymentFailurePage = lazy(() => import("./pages/Payment/PaymentFailurePage"));
+const KonnectTestPage = lazy(() => import("./pages/Payment/KonnectTestPage"));
+const TestSuccessPage = lazy(() => import("./pages/Payment/TestSuccessPage"));
 const NotFound = lazy(() => import("./pages/NotFound/NotFound"));
 
 function App() {
@@ -44,6 +48,10 @@ function App() {
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/terms" element={<TermsPage />} />
                   <Route path="/privacy" element={<PrivacyPage />} />
+                  <Route path="/payment/success" element={<PaymentSuccessPage />} />
+                  <Route path="/payment/failure" element={<PaymentFailurePage />} />
+                  <Route path="/payment/test" element={<KonnectTestPage />} />
+                  <Route path="/payment/test-success" element={<TestSuccessPage />} />
 
                   {/* Protected routes */}
                   <Route

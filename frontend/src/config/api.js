@@ -50,6 +50,7 @@ export const API_ENDPOINTS = {
   USER_PROFILE: `${ACTIVE_API_URL}/users/profile`,
   UPDATE_PROFILE: `${ACTIVE_API_URL}/users/profile`,
   CHANGE_PASSWORD: `${ACTIVE_API_URL}/users/change-password`,
+  USER_DONATE: `${ACTIVE_API_URL}/users/donate`,
 
   // Campaign endpoints
   CAMPAIGNS: `${ACTIVE_API_URL}/campaigns`,
@@ -63,6 +64,11 @@ export const API_ENDPOINTS = {
   TRANSACTIONS: `${ACTIVE_API_URL}/transactions`,
   USER_TRANSACTIONS: `${ACTIVE_API_URL}/transactions/user`,
   CREATE_TRANSACTION: `${ACTIVE_API_URL}/transactions`,
+
+  // Konnect payment endpoints
+  KONNECT_INIT_PAYMENT: `${ACTIVE_API_URL}/konnect/init-payment`,
+  KONNECT_PAYMENT_DETAILS: (paymentRef) => `${ACTIVE_API_URL}/konnect/payment/${paymentRef}`,
+  KONNECT_VERIFY_PAYMENT: (paymentRef) => `${ACTIVE_API_URL}/konnect/verify/${paymentRef}`,
 
   // File uploads
   UPLOADS: `${ACTIVE_API_URL}/uploads`,

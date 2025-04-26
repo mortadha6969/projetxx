@@ -1,12 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../utils/AuthContext';
 import { FiClock, FiUsers, FiTarget, FiHeart, FiArrowLeft } from 'react-icons/fi';
+import apiService from '../../utils/apiService';
+import { toast } from 'react-toastify';
 
 const CampaignDetail = ({ campaign }) => {
   console.log('CampaignDetail received campaign:', campaign);
+
+  // Force a refresh of the campaign data when the component mounts
+  useEffect(() => {
+    console.log('CampaignDetail component mounted, campaign data:', {
+      id: campaign.id,
+      donated: campaign.donated,
+      donors: campaign.donors
+    });
+
+    // Add a timestamp to the console log to track when the component was rendered
+    console.log('Component rendered at:', new Date().toISOString());
+  }, [campaign]);
 
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -88,10 +102,59 @@ const CampaignDetail = ({ campaign }) => {
   };
 
   // Handle donation submission
-  const handleDonate = (e) => {
+  const handleDonate = async (e) => {
     e.preventDefault();
-    // In a real app, this would submit the donation to the API
-    alert(`Thank you for your donation of ${donationAmount} DT!`);
+
+    try {
+      // Show loading state
+      const loadingToast = toast.loading("Initializing payment...");
+
+      // Get user information
+      const userResponse = await apiService.user.getProfile();
+      const user = userResponse.user;
+
+      console.log('User data:', user);
+      console.log('Campaign data:', campaign);
+
+      // Prepare payment data
+      const amountInDT = parseFloat(donationAmount);
+      const amountInMillimes = Math.round(amountInDT * 1000);
+
+      console.log('Donation amount in DT:', amountInDT);
+      console.log('Donation amount in millimes:', amountInMillimes);
+
+      const paymentData = {
+        campaignId: campaign.id,
+        amount: amountInMillimes, // Convert to millimes
+        description: `Donation to ${campaign.title}`,
+        firstName: user.firstName || user.username,
+        lastName: user.lastName || '',
+        email: user.email,
+        phoneNumber: user.phone || ''
+      };
+
+      console.log('Payment data being sent:', paymentData);
+
+      // Initialize Konnect payment
+      const response = await apiService.konnect.initializePayment(paymentData);
+
+      // Update toast
+      toast.update(loadingToast, {
+        render: "Redirecting to payment gateway...",
+        type: "info",
+        isLoading: true,
+        autoClose: 2000
+      });
+
+      // Redirect to Konnect payment page
+      setTimeout(() => {
+        window.location.href = response.payUrl;
+      }, 1500);
+
+    } catch (error) {
+      console.error("Donation error:", error);
+      toast.error(error.message || "Failed to initialize payment. Please try again.");
+    }
   };
 
   return (
@@ -130,14 +193,24 @@ const CampaignDetail = ({ campaign }) => {
         </ol>
       </nav>
 
-      {/* Go Back Button */}
-      <div className="mb-4">
+      {/* Navigation Buttons */}
+      <div className="mb-4 flex space-x-4">
         <button
           onClick={() => navigate('/campaigns')}
           className="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
         >
           <FiArrowLeft className="mr-2" />
           <span>Back to Campaigns</span>
+        </button>
+
+        <button
+          onClick={() => window.location.reload()}
+          className="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Refresh Campaign</span>
         </button>
       </div>
 
