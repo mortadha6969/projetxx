@@ -12,8 +12,9 @@ const Campaign = sequelize.define('Campaign', {
     userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field: 'user_id',
         references: {
-            model: 'User',
+            model: 'users',
             key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -130,6 +131,8 @@ const Campaign = sequelize.define('Campaign', {
     }
 }, {
     timestamps: true,
+    tableName: 'campaigns',
+    underscored: true,
     hooks: {
         beforeValidate: (campaign) => {
             // Ensure donated amount doesn't exceed target

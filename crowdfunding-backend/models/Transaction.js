@@ -20,7 +20,7 @@ const Transaction = sequelize.define('Transaction', {
     allowNull: false,
     field: 'donor_id',
     references: {
-      model: 'User',
+      model: 'users',
       key: 'id'
     },
     onUpdate: 'CASCADE',
@@ -31,7 +31,7 @@ const Transaction = sequelize.define('Transaction', {
     allowNull: false,
     field: 'campaign_id',
     references: {
-      model: 'Campaign',
+      model: 'campaigns',
       key: 'id'
     },
     onUpdate: 'CASCADE',

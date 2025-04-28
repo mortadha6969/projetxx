@@ -58,6 +58,8 @@ const User = sequelize.define('User', {
 }, {
     // Removed password hashing hooks to avoid double hashing
     // Password hashing is now handled in the controller
+    tableName: 'users',
+    underscored: true
 });
 
 // Instance method to compare password

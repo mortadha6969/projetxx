@@ -35,7 +35,8 @@ if (useSQLite) {
         logging: console.log,
         define: {
             timestamps: true,
-            freezeTableName: true
+            freezeTableName: false,
+            underscored: true
         }
     });
 } else {
@@ -58,7 +59,8 @@ if (useSQLite) {
                 charset: 'utf8mb4',
                 collate: 'utf8mb4_general_ci',
                 timestamps: true,
-                freezeTableName: true
+                freezeTableName: false,
+                underscored: true
             }
         }
     );
