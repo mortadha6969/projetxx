@@ -34,7 +34,7 @@ const ModernNavbar = () => {
     { name: "Home", path: "/", icon: <FiHome /> },
     { name: "Campaigns", path: "/campaigns", icon: <FiGrid /> },
     { name: "Create", path: "/create-campaign", requiresAuth: true, icon: <FiPlusCircle /> },
-    { name: "Admin", path: "/admin", requiresAdmin: true, icon: <FiShield /> },
+    // Removed Admin link from here as it's already in the auth section
   ];
 
   // Debug user role for admin menu

@@ -11,7 +11,6 @@ import ModernNavbar from "./components/Navbar/ModernNavbar";
 import ModernFooter from "./components/WebsiteFooter/ModernFooter";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import LoadingSpinner from "./components/UI/LoadingSpinner";
-import AdminDashboardLink from "./pages/AdminDashboardLink";
 
 // Lazy-loaded pages for better performance
 const Home = lazy(() => import("./pages/Home/SimpleHome"));
@@ -93,7 +92,6 @@ function App() {
             </ErrorBoundary>
           </main>
           <ModernFooter />
-          <AdminDashboardLink />
         </div>
         <ToastContainer position="top-right" autoClose={5000} />
       </Router>

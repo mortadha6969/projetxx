@@ -2,19 +2,35 @@ const express = require('express');
 const router = express.Router();
 const campaignController = require('../controllers/campaignController');
 const auth = require('../middleware/auth');
-const upload = require('../middleware/fileUpload');
+const { upload, handleUploadError } = require('../middleware/fileUpload');
 
 // Public routes
 router.get('/', campaignController.getAllCampaigns);
-router.get('/search', campaignController.searchCampaigns);
 router.get('/:id', campaignController.getCampaignById);
-router.get('/user/:userId', campaignController.getUserCampaigns);
 
 // Protected routes (require authentication)
-router.use(auth);
-router.post('/', upload.single('image'), campaignController.createCampaign);
-router.put('/:id', upload.single('image'), campaignController.updateCampaign);
-router.delete('/:id', campaignController.deleteCampaign);
-router.get('/my/campaigns', campaignController.getUserCampaigns);
+router.post('/',
+    auth,
+    upload.fields([
+        { name: 'image', maxCount: 1 },
+        { name: 'additionalImages', maxCount: 4 }
+    ]),
+    handleUploadError,
+    campaignController.createCampaign
+);
+router.put('/:id',
+    auth,
+    upload.fields([
+        { name: 'image', maxCount: 1 },
+        { name: 'additionalImages', maxCount: 4 }
+    ]),
+    handleUploadError,
+    campaignController.updateCampaign
+);
+router.delete('/:id', auth, campaignController.deleteCampaign);
+
+// Campaign iteration routes
+router.post('/:id/iterate', auth, campaignController.startNewIteration);
+router.get('/:id/iterations', campaignController.getPreviousIterations);
 
 module.exports = router;

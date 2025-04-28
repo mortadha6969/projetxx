@@ -91,12 +91,27 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Save token and user info to localStorage
+      console.log('Saving token to localStorage:', response.token.substring(0, 20) + '...');
       localStorage.setItem('token', response.token);
       localStorage.setItem('userId', response.user.id);
       localStorage.setItem('username', response.user.username);
+
       // Also save the user role
       if (response.user.role) {
+        console.log('Saving user role to localStorage:', response.user.role);
         localStorage.setItem('userRole', response.user.role);
+      }
+
+      // Debug token
+      try {
+        const tokenParts = response.token.split('.');
+        if (tokenParts.length === 3) {
+          const payload = JSON.parse(atob(tokenParts[1]));
+          console.log('Token payload:', payload);
+          console.log('Token expiration:', new Date(payload.exp * 1000).toLocaleString());
+        }
+      } catch (e) {
+        console.error('Error parsing token:', e);
       }
 
       // Update state

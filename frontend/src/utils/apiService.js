@@ -47,18 +47,59 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle unauthorized errors (401)
-    if (error.response && error.response.status === 401) {
-      // Clear local storage and redirect to login
-      localStorage.removeItem('token');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('username');
+    // Log the error for debugging
+    console.error('API Error:', error);
 
-      // Only redirect if we're not already on the login page
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+    // Handle different types of errors
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.error('Error response status:', error.response.status);
+      console.error('Error response data:', error.response.data);
+
+      // Handle specific status codes
+      switch (error.response.status) {
+        case 401:
+          // Unauthorized - clear local storage and redirect to login
+          localStorage.removeItem('token');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('username');
+          localStorage.removeItem('userRole');
+
+          // Only redirect if we're not already on the login page
+          if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login';
+          }
+          break;
+
+        case 403:
+          // Forbidden - user doesn't have permission
+          console.error('Permission denied');
+          break;
+
+        case 404:
+          // Not found
+          console.error('Resource not found');
+          break;
+
+        case 422:
+          // Validation error
+          console.error('Validation error:', error.response.data);
+          break;
+
+        case 500:
+          // Server error
+          console.error('Server error');
+          break;
       }
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('No response received from server');
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error('Request setup error:', error.message);
     }
+
     return Promise.reject(error);
   }
 );
@@ -221,6 +262,24 @@ const apiService = {
         if (campaignData instanceof FormData) {
           const token = localStorage.getItem('token');
 
+          // Debug token
+          console.log('Token exists:', !!token);
+          if (token) {
+            console.log('Token preview:', token.substring(0, 20) + '...');
+
+            try {
+              // Parse the token (just for debugging)
+              const tokenParts = token.split('.');
+              if (tokenParts.length === 3) {
+                const payload = JSON.parse(atob(tokenParts[1]));
+                console.log('Token payload:', payload);
+                console.log('Token expiration:', new Date(payload.exp * 1000).toLocaleString());
+              }
+            } catch (e) {
+              console.error('Error parsing token:', e);
+            }
+          }
+
           // Log the form data for debugging
           console.log('Form data entries:');
           for (let pair of campaignData.entries()) {
@@ -241,9 +300,26 @@ const apiService = {
             }
           };
 
-          // Make the API call
-          const response = await axios.post(API_ENDPOINTS.CREATE_CAMPAIGN, campaignData, config);
-          return response.data;
+          // Log the API endpoint for debugging
+          console.log('Posting to campaign creation endpoint:', API_ENDPOINTS.CREATE_CAMPAIGN);
+
+          // Try using the legacy endpoint if the versioned one fails
+          try {
+            // First try with the versioned endpoint
+            const response = await axios.post(API_ENDPOINTS.CREATE_CAMPAIGN, campaignData, config);
+            return response.data;
+          } catch (error) {
+            console.error('Error with versioned API, trying legacy endpoint:', error);
+
+            // If that fails, try the legacy endpoint
+            if (API_ENDPOINTS.LEGACY && API_ENDPOINTS.LEGACY.CAMPAIGNS) {
+              console.log('Trying legacy endpoint:', API_ENDPOINTS.LEGACY.CAMPAIGNS);
+              const legacyResponse = await axios.post(API_ENDPOINTS.LEGACY.CAMPAIGNS, campaignData, config);
+              return legacyResponse.data;
+            } else {
+              throw error;
+            }
+          }
         } else {
           const response = await apiClient.post(API_ENDPOINTS.CREATE_CAMPAIGN, campaignData);
           return response.data;
