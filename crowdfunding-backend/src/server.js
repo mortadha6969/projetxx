@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const app = require('./app');
 const { sequelize, initializeDatabase } = require('./config/database');
+const addCategoryToCampaigns = require('./migrations/add-category-to-campaigns');
 
 // Database Sync and Server Start
 const startServer = async () => {
@@ -17,6 +18,16 @@ const startServer = async () => {
 
     await sequelize.sync(syncOptions);
     console.log('✅ Database synchronized');
+
+    // Run migrations
+    try {
+      console.log('Running migrations...');
+      await addCategoryToCampaigns();
+      console.log('✅ Migrations completed successfully');
+    } catch (migrationError) {
+      console.error('❌ Migration error:', migrationError);
+      // Continue server startup even if migrations fail
+    }
 
     // Create uploads directory if it doesn't exist
     const uploadsDir = path.join(__dirname, '..', 'uploads');

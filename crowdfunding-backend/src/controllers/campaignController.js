@@ -4,7 +4,18 @@ const path = require('path');
 
 exports.getAllCampaigns = async (req, res) => {
   try {
+    const { category } = req.query;
+
+    // Build the where clause based on query parameters
+    const whereClause = {};
+
+    // Add category filter if provided
+    if (category && category !== 'all') {
+      whereClause.category = category;
+    }
+
     const campaigns = await Campaign.findAll({
+      where: whereClause,
       include: [
         {
           model: User,
@@ -12,8 +23,9 @@ exports.getAllCampaigns = async (req, res) => {
           attributes: ['id', 'username', 'firstName', 'lastName', 'profileImage']
         }
       ],
-      order: [['createdAt', 'DESC']]
+      order: [['createdAt', 'DESC']] // Default to newest
     });
+
     res.json(campaigns);
   } catch (error) {
     console.error('Error fetching all campaigns:', error);

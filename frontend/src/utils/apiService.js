@@ -229,11 +229,17 @@ const apiService = {
 
   // Campaign methods
   campaigns: {
-    getAll: async () => {
+    getAll: async (params = {}) => {
       try {
-        const response = await apiClient.get(API_ENDPOINTS.CAMPAIGNS);
+        console.log('API call to get campaigns with params:', params);
+        console.log('API endpoint:', API_ENDPOINTS.CAMPAIGNS);
+
+        const response = await apiClient.get(API_ENDPOINTS.CAMPAIGNS, { params });
+        console.log('API response status:', response.status);
+
         return response.data;
       } catch (error) {
+        console.error('Error fetching campaigns:', error);
         throw error.response?.data || error;
       }
     },

@@ -4,6 +4,7 @@ const router = express.Router();
 const User = require('../models/User');
 const Campaign = require('../models/Campaign');
 const Transaction = require('../models/Transaction');
+const { sequelize } = require('../config/database');
 
 // Debug admin routes - no authentication required
 // These routes are for debugging purposes only
@@ -124,6 +125,55 @@ router.get('/dashboard', async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Failed to get dashboard statistics'
+    });
+  }
+});
+
+// Debug endpoint to test sorting
+router.get('/campaigns/sort/:sortType', async (req, res) => {
+  try {
+    const { sortType } = req.params;
+    console.log(`Debug admin: Testing sorting with type: ${sortType}`);
+
+    let order = [['createdAt', 'DESC']]; // Default
+
+    switch (sortType) {
+      case 'oldest':
+        order = [['createdAt', 'ASC']];
+        break;
+      case 'most-funded':
+        order = [[sequelize.cast(sequelize.col('donated'), 'DECIMAL'), 'DESC']];
+        break;
+      case 'least-funded':
+        order = [[sequelize.cast(sequelize.col('donated'), 'DECIMAL'), 'ASC']];
+        break;
+      // Default is 'newest' which is already set
+    }
+
+    const campaigns = await Campaign.findAll({
+      order: order,
+      attributes: ['id', 'title', 'donated', 'createdAt']
+    });
+
+    console.log(`Debug admin: Found ${campaigns.length} campaigns with sort: ${sortType}`);
+    console.log('Debug admin: Sorted campaigns:', campaigns.map(c => ({
+      id: c.id,
+      title: c.title,
+      donated: c.donated,
+      createdAt: c.createdAt
+    })));
+
+    res.status(200).json({
+      status: 'success',
+      sortType,
+      order,
+      campaigns
+    });
+  } catch (error) {
+    console.error('Debug admin sort campaigns error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to sort campaigns'
     });
   }
 });

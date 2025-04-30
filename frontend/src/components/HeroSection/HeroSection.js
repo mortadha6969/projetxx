@@ -50,7 +50,7 @@ const HeroSection = () => {
             >
               <div className="relative overflow-hidden rounded-lg shadow-xl">
                 <img
-                  src="https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1169&q=80"
+                  src="/images/crowdfunding-image.webp"
                   alt="Crowdfunding"
                   className="w-full h-auto object-cover"
                 />

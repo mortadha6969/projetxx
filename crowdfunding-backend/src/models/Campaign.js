@@ -108,6 +108,14 @@ const Campaign = sequelize.define('Campaign', {
         type: DataTypes.TEXT,
         allowNull: true
     },
+    category: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'General',
+        validate: {
+            isIn: [['General', 'Technology', 'Education', 'Medical', 'Community', 'Creative', 'Business', 'Other']]
+        }
+    },
     files: {
         type: DataTypes.JSON,
         defaultValue: [],
