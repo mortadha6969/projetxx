@@ -12,15 +12,6 @@ const CampaignPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Add a refresh counter to force re-fetching the campaign data
-  const [refreshCounter, setRefreshCounter] = useState(0);
-
-  // Function to refresh the campaign data
-  const refreshCampaign = () => {
-    console.log('Refreshing campaign data...');
-    setRefreshCounter(prev => prev + 1);
-  };
-
   useEffect(() => {
     // If we have an ID, fetch the specific campaign
     if (id) {
@@ -30,7 +21,7 @@ const CampaignPage = () => {
           setError(null);
 
           // Use the API service to fetch campaign data
-          console.log(`Fetching campaign data for ID ${id} (refresh #${refreshCounter})`);
+          console.log(`Fetching campaign data for ID ${id}`);
           const response = await apiService.campaigns.getById(id);
           console.log('Campaign data received:', response);
 
@@ -81,7 +72,7 @@ const CampaignPage = () => {
 
       fetchCampaign();
     }
-  }, [id, refreshCounter]); // Add refreshCounter to the dependency array
+  }, [id]); // Only re-fetch when the ID changes
 
   if (loading) {
     return <LoadingSpinner />;

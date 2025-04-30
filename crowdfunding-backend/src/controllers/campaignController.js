@@ -62,6 +62,7 @@ exports.createCampaign = async (req, res) => {
     // Handle main image URL
     let imageUrl = null;
     let files = [];
+    let documentUrl = null;
 
     // Process main image
     if (req.files && req.files.image && req.files.image.length > 0) {
@@ -69,15 +70,34 @@ exports.createCampaign = async (req, res) => {
       imageUrl = `/uploads/${mainImage.filename}`.replace(/\\/g, '/');
     }
 
-    // Process additional images
+    // Process additional images and PDF documents
     if (req.files && req.files.additionalImages) {
-      files = req.files.additionalImages.map(file => {
+      // Separate PDF files from images
+      const pdfFiles = [];
+      const imageFiles = [];
+
+      req.files.additionalImages.forEach(file => {
+        if (file.mimetype === 'application/pdf') {
+          pdfFiles.push(file);
+        } else {
+          imageFiles.push(file);
+        }
+      });
+
+      // Process image files
+      files = imageFiles.map(file => {
         return {
           url: `/uploads/${file.filename}`.replace(/\\/g, '/'),
           name: file.originalname,
           type: file.mimetype
         };
       });
+
+      // Process the first PDF file if any
+      if (pdfFiles.length > 0) {
+        const pdfDocument = pdfFiles[0];
+        documentUrl = `/uploads/${pdfDocument.filename}`.replace(/\\/g, '/');
+      }
     }
 
     console.log('Creating campaign with files:', files);
@@ -88,6 +108,7 @@ exports.createCampaign = async (req, res) => {
       target: parseFloat(target),
       imageUrl,
       files,
+      documentUrl,
       category: category || 'General',
       endDate: endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       userId
@@ -129,9 +150,22 @@ exports.updateCampaign = async (req, res) => {
       updateData.imageUrl = `/uploads/${mainImage.filename}`.replace(/\\/g, '/');
     }
 
-    // Process additional images
+    // Process additional images and PDF documents
     if (req.files && req.files.additionalImages) {
-      const additionalFiles = req.files.additionalImages.map(file => {
+      // Separate PDF files from images
+      const pdfFiles = [];
+      const imageFiles = [];
+
+      req.files.additionalImages.forEach(file => {
+        if (file.mimetype === 'application/pdf') {
+          pdfFiles.push(file);
+        } else {
+          imageFiles.push(file);
+        }
+      });
+
+      // Process image files
+      const additionalFiles = imageFiles.map(file => {
         return {
           url: `/uploads/${file.filename}`.replace(/\\/g, '/'),
           name: file.originalname,
@@ -144,6 +178,12 @@ exports.updateCampaign = async (req, res) => {
         updateData.files = [...campaign.files, ...additionalFiles];
       } else {
         updateData.files = additionalFiles;
+      }
+
+      // Process the first PDF file if any
+      if (pdfFiles.length > 0) {
+        const pdfDocument = pdfFiles[0];
+        updateData.documentUrl = `/uploads/${pdfDocument.filename}`.replace(/\\/g, '/');
       }
     }
 

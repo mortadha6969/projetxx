@@ -6,6 +6,7 @@ const { upload, handleUploadError } = require('../middleware/fileUpload');
 
 // Public routes
 router.get('/', campaignController.getAllCampaigns);
+router.get('/user', auth, campaignController.getUserCampaigns);
 router.get('/:id', campaignController.getCampaignById);
 
 // Protected routes (require authentication)
@@ -13,7 +14,7 @@ router.post('/',
     auth,
     upload.fields([
         { name: 'image', maxCount: 1 },
-        { name: 'additionalImages', maxCount: 4 }
+        { name: 'additionalImages', maxCount: 5 } // Increased to 5 to accommodate PDF files
     ]),
     handleUploadError,
     campaignController.createCampaign
@@ -22,7 +23,7 @@ router.put('/:id',
     auth,
     upload.fields([
         { name: 'image', maxCount: 1 },
-        { name: 'additionalImages', maxCount: 4 }
+        { name: 'additionalImages', maxCount: 5 } // Increased to 5 to accommodate PDF files
     ]),
     handleUploadError,
     campaignController.updateCampaign

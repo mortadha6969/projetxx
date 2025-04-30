@@ -400,6 +400,14 @@ const ModernProfilePage = () => {
                       Change Password
                     </Link>
 
+                    {/* My Campaigns Link - For all users */}
+                    <Link
+                      to="/my-campaigns"
+                      className="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors inline-block text-center"
+                    >
+                      Manage My Campaigns
+                    </Link>
+
                     {/* Admin Dashboard Link - Only visible for admins */}
                     {user.role === 'admin' && (
                       <Link

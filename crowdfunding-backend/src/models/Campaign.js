@@ -137,6 +137,17 @@ const Campaign = sequelize.define('Campaign', {
                 }
             }
         }
+    },
+    documentUrl: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+            isValidPath(value) {
+                if (value && !value.startsWith('/uploads/')) {
+                    throw new Error('Invalid document path format');
+                }
+            }
+        }
     }
 }, {
     tableName: 'campaigns',

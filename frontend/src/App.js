@@ -20,6 +20,7 @@ const ProfileAccountPage = lazy(() => import("./pages/ProfilePage/ModernProfileP
 const ChangePassword = lazy(() => import("./pages/ChangePassword/ChangePassword"));
 const CampaignPage = lazy(() => import("./pages/CampaignPage/CampaignPage"));
 const CreateCampaignPage = lazy(() => import("./pages/CreateCampaignPage/CreateCampaignPage"));
+const MyCampaignsPage = lazy(() => import("./pages/MyCampaignsPage/MyCampaignsPage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard/AdminDashboard"));
 const TermsPage = lazy(() => import("./pages/Terms/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/Privacy/PrivacyPage"));
@@ -74,6 +75,22 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <CreateCampaignPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/my-campaigns"
+                    element={
+                      <ProtectedRoute>
+                        <MyCampaignsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/edit-campaign/:id"
+                    element={
+                      <ProtectedRoute>
+                        <CreateCampaignPage isEditing={true} />
                       </ProtectedRoute>
                     }
                   />

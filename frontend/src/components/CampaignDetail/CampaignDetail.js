@@ -3,9 +3,10 @@ import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../utils/AuthContext';
-import { FiClock, FiUsers, FiTarget, FiHeart, FiArrowLeft } from 'react-icons/fi';
+import { FiClock, FiUsers, FiTarget, FiHeart, FiArrowLeft, FiFileText } from 'react-icons/fi';
 import apiService from '../../utils/apiService';
 import { toast } from 'react-toastify';
+import PDFViewer from '../PDFViewer/PDFViewer';
 
 const CampaignDetail = ({ campaign }) => {
   console.log('CampaignDetail received campaign:', campaign);
@@ -53,9 +54,19 @@ const CampaignDetail = ({ campaign }) => {
   const allImages = [
     getFullImageUrl(campaign.imageUrl),
     ...(processedFiles && Array.isArray(processedFiles)
-      ? processedFiles.map(file => getFullImageUrl(file.url))
+      ? processedFiles
+          .filter(file => file.type && file.type.startsWith('image/'))
+          .map(file => getFullImageUrl(file.url))
       : [])
   ].filter(Boolean); // Remove any null/undefined values
+
+  // Get PDF file from files array if available
+  const pdfFile = processedFiles && Array.isArray(processedFiles)
+    ? processedFiles.find(file => file.type === 'application/pdf')
+    : null;
+
+  // Use documentUrl from campaign or from PDF file in files array
+  const pdfUrl = campaign.documentUrl || (pdfFile ? pdfFile.url : null);
 
   console.log('All images:', allImages);
 
@@ -201,16 +212,6 @@ const CampaignDetail = ({ campaign }) => {
         >
           <FiArrowLeft className="mr-2" />
           <span>Back to Campaigns</span>
-        </button>
-
-        <button
-          onClick={() => window.location.reload()}
-          className="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          <span>Refresh Campaign</span>
         </button>
       </div>
 
@@ -509,6 +510,26 @@ const CampaignDetail = ({ campaign }) => {
           }
         </div>
       </div>
+
+      {/* Campaign Document (PDF) */}
+      {pdfUrl && (
+        <div className="p-6 border-t border-gray-200">
+          <PDFViewer pdfUrl={pdfUrl} title={campaign.title} />
+        </div>
+      )}
+
+      {/* Show a message if there's no PDF document */}
+      {!pdfUrl && (
+        <div className="p-6 border-t border-gray-200">
+          <div className="flex items-center">
+            <FiFileText className="text-2xl text-primary-500 mr-3" />
+            <h2 className="text-xl font-bold text-gray-900">Campaign Document</h2>
+          </div>
+          <p className="mt-2 text-gray-600">
+            This campaign doesn't have any attached PDF documents.
+          </p>
+        </div>
+      )}
     </div>
     </div>
   );

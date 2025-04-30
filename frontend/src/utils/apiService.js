@@ -255,9 +255,12 @@ const apiService = {
 
     getUserCampaigns: async () => {
       try {
+        console.log('Fetching user campaigns from:', API_ENDPOINTS.USER_CAMPAIGNS);
         const response = await apiClient.get(API_ENDPOINTS.USER_CAMPAIGNS);
+        console.log('User campaigns response:', response.data);
         return response.data;
       } catch (error) {
+        console.error('Error fetching user campaigns:', error);
         throw error.response?.data || error;
       }
     },

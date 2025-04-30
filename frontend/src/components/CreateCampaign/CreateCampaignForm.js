@@ -1,26 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiService from '../../utils/apiService';
 import { useAuth } from '../../utils/AuthContext';
+import LoadingSpinner from '../UI/LoadingSpinner';
 import './CreateCampaignForm.css';
 
-const CreateCampaignForm = () => {
+const CreateCampaignForm = ({ campaignId, isEditing }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  // Pre-fill with test data for easier testing
+  // Initialize with empty form data
   const [formData, setFormData] = useState({
-    title: 'Test Campaign',
-    description: 'This is a test campaign created for demonstration purposes. It showcases the features of our crowdfunding platform.',
-    target: '1000',
+    title: '',
+    description: '',
+    target: '',
     endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default to 30 days from now
-    category: 'Technology'
+    category: 'General'
   });
 
   const [files, setFiles] = useState([]);
+  const [pdfFile, setPdfFile] = useState(null);
+  const [existingFiles, setExistingFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fetchingCampaign, setFetchingCampaign] = useState(isEditing);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+
+  // Fetch campaign data if in editing mode
+  useEffect(() => {
+    const fetchCampaignData = async () => {
+      if (isEditing && campaignId) {
+        try {
+          setFetchingCampaign(true);
+          const campaignData = await apiService.campaigns.getById(campaignId);
+          console.log('Fetched campaign data for editing:', campaignData);
+
+          // Format the date to YYYY-MM-DD for the input field
+          const formattedEndDate = campaignData.endDate
+            ? new Date(campaignData.endDate).toISOString().split('T')[0]
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+          setFormData({
+            title: campaignData.title || '',
+            description: campaignData.description || '',
+            target: campaignData.target?.toString() || '',
+            endDate: formattedEndDate,
+            category: campaignData.category || 'General'
+          });
+
+          // Set existing files if any
+          if (campaignData.files && Array.isArray(campaignData.files)) {
+            setExistingFiles(campaignData.files);
+          }
+
+          // If there's a document URL, show it in the UI
+          if (campaignData.documentUrl) {
+            console.log('Campaign has a PDF document:', campaignData.documentUrl);
+            // We can't set the actual file, but we can indicate that a document exists
+            setPdfFile({ name: 'Existing document.pdf', size: 0, isExisting: true });
+          }
+        } catch (err) {
+          console.error('Error fetching campaign data:', err);
+          setError('Failed to load campaign data. Please try again.');
+        } finally {
+          setFetchingCampaign(false);
+        }
+      }
+    };
+
+    fetchCampaignData();
+  }, [isEditing, campaignId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,6 +78,14 @@ const CreateCampaignForm = () => {
 
   const handleFileChange = (e) => {
     setFiles(e.target.files); // ← Files are stored here
+  };
+
+  const handlePdfChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setPdfFile(e.target.files[0]); // Store only the first PDF file
+    } else {
+      setPdfFile(null);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -70,48 +127,81 @@ const CreateCampaignForm = () => {
         }
       }
 
-      console.log('Sending campaign data with files:', files.length);
+      // Add PDF document if available
+      if (pdfFile) {
+        // Use 'additionalImages' field for PDF files as well
+        // The backend will handle it based on the file type
+        campaignData.append('additionalImages', pdfFile);
+      }
 
-      // Send request to create campaign
-      const response = await apiService.campaigns.create(campaignData);
+      let response;
 
-      console.log('Campaign created successfully:', response);
-      setSuccess(true);
+      if (isEditing && campaignId) {
+        console.log(`Updating campaign ${campaignId} with files:`, files.length);
+        // Update existing campaign
+        response = await apiService.campaigns.update(campaignId, campaignData);
+        console.log('Campaign updated successfully:', response);
+        setSuccess(true);
 
-      // Reset form
-      setFormData({
-        title: '',
-        description: '',
-        target: '',
-        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        category: 'General'
-      });
-      setFiles([]);
+        // Redirect to the campaign page after a delay
+        setTimeout(() => {
+          navigate(`/campaign/${campaignId}`);
+        }, 2000);
+      } else {
+        console.log('Creating new campaign with files:', files.length);
+        // Create new campaign
+        response = await apiService.campaigns.create(campaignData);
+        console.log('Campaign created successfully:', response);
+        setSuccess(true);
 
-      // Redirect to campaigns page after a delay
-      setTimeout(() => {
-        navigate('/campaigns');
-      }, 2000);
+        // Reset form for new campaign creation
+        setFormData({
+          title: '',
+          description: '',
+          target: '',
+          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          category: 'General'
+        });
+        setFiles([]);
 
+        // Redirect to campaigns page after a delay
+        setTimeout(() => {
+          navigate('/campaigns');
+        }, 2000);
+      }
     } catch (error) {
-      console.error('Error creating campaign:', error);
-      setError(error.message || 'Failed to create campaign. Please try again.');
+      console.error(`Error ${isEditing ? 'updating' : 'creating'} campaign:`, error);
+      setError(error.message || `Failed to ${isEditing ? 'update' : 'create'} campaign. Please try again.`);
     } finally {
       setLoading(false);
     }
   };
 
+  // Show loading spinner while fetching campaign data
+  if (fetchingCampaign) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
   return (
     <div className="create-campaign-container">
       {success ? (
         <div className="success-message">
-          <h2>Campaign Created Successfully!</h2>
-          <p>Your campaign has been created and is pending approval.</p>
-          <p>Redirecting to campaigns page...</p>
+          <h2>{isEditing ? 'Campaign Updated Successfully!' : 'Campaign Created Successfully!'}</h2>
+          <p>
+            {isEditing
+              ? 'Your campaign has been updated.'
+              : 'Your campaign has been created and is pending approval.'
+            }
+          </p>
+          <p>Redirecting {isEditing ? 'to campaign page' : 'to campaigns page'}...</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="create-campaign-form">
-          <h2>Create Your Campaign</h2>
+          <h2>{isEditing ? 'Update Your Campaign' : 'Create Your Campaign'}</h2>
 
           {error && <div className="error-message">{error}</div>}
 
@@ -219,12 +309,45 @@ const CreateCampaignForm = () => {
             )}
           </div>
 
+          <div className="form-group">
+            <label htmlFor="pdfDocument">Campaign Document (PDF)</label>
+            <input
+              type="file"
+              id="pdfDocument"
+              name="additionalImages"
+              accept=".pdf"
+              onChange={handlePdfChange}
+              disabled={loading}
+            />
+            <small className="form-text">
+              Upload a PDF document with additional information about your campaign (optional).
+            </small>
+            {pdfFile && (
+              <div className="selected-files">
+                <p>Selected PDF document:</p>
+                <ul>
+                  <li>
+                    📄 {pdfFile.name}
+                    {pdfFile.isExisting ? (
+                      <span> (Existing document)</span>
+                    ) : (
+                      <span> ({(pdfFile.size / 1024).toFixed(1)} KB)</span>
+                    )}
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
+
           <button
             type="submit"
             className="submit-btn"
             disabled={loading}
           >
-            {loading ? 'Creating Campaign...' : 'Create Campaign'}
+            {loading
+              ? (isEditing ? 'Updating Campaign...' : 'Creating Campaign...')
+              : (isEditing ? 'Update Campaign' : 'Create Campaign')
+            }
           </button>
         </form>
       )}
