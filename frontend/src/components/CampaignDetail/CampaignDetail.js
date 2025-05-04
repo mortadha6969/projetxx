@@ -68,6 +68,10 @@ const CampaignDetail = ({ campaign }) => {
   // Use documentUrl from campaign or from PDF file in files array
   const pdfUrl = campaign.documentUrl || (pdfFile ? pdfFile.url : null);
 
+  console.log('PDF URL:', pdfUrl);
+  console.log('Campaign document URL:', campaign.documentUrl);
+  console.log('PDF file from files array:', pdfFile);
+
   console.log('All images:', allImages);
 
   const [activeImage, setActiveImage] = useState(allImages[0] || campaign.images?.[0]);

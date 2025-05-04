@@ -101,6 +101,34 @@ const CreateCampaignForm = ({ campaignId, isEditing }) => {
       return;
     }
 
+    // Validate form data
+    if (!formData.title || formData.title.trim().length < 5) {
+      setError('Campaign title must be at least 5 characters long');
+      return;
+    }
+
+    if (!formData.description || formData.description.trim().length < 50) {
+      setError('Campaign description must be at least 50 characters long');
+      return;
+    }
+
+    if (!formData.target || parseFloat(formData.target) < 100) {
+      setError('Target amount must be at least 100 DT');
+      return;
+    }
+
+    // Validate end date
+    if (!formData.endDate) {
+      setError('End date is required');
+      return;
+    }
+
+    const endDateObj = new Date(formData.endDate);
+    if (endDateObj <= new Date()) {
+      setError('End date must be in the future');
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -214,8 +242,13 @@ const CreateCampaignForm = ({ campaignId, isEditing }) => {
               value={formData.title}
               onChange={handleChange}
               required
+              minLength="5"
+              maxLength="100"
               disabled={loading}
             />
+            <small className="form-text">
+              Title must be between 5 and 100 characters.
+            </small>
           </div>
 
           <div className="form-group">
@@ -226,9 +259,14 @@ const CreateCampaignForm = ({ campaignId, isEditing }) => {
               value={formData.description}
               onChange={handleChange}
               required
+              minLength="50"
+              maxLength="5000"
               disabled={loading}
               rows="6"
             />
+            <small className="form-text">
+              Description must be between 50 and 5000 characters.
+            </small>
           </div>
 
           <div className="form-group">
@@ -240,10 +278,13 @@ const CreateCampaignForm = ({ campaignId, isEditing }) => {
               value={formData.target}
               onChange={handleChange}
               required
-              min="1"
+              min="100"
               step="0.01"
               disabled={loading}
             />
+            <small className="form-text">
+              Target amount must be at least 100 DT.
+            </small>
           </div>
 
           <div className="form-group">

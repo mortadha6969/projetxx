@@ -234,13 +234,31 @@ const apiService = {
         console.log('API call to get campaigns with params:', params);
         console.log('API endpoint:', API_ENDPOINTS.CAMPAIGNS);
 
-        const response = await apiClient.get(API_ENDPOINTS.CAMPAIGNS, { params });
-        console.log('API response status:', response.status);
+        // Try the versioned endpoint first
+        try {
+          const response = await apiClient.get(API_ENDPOINTS.CAMPAIGNS, { params });
+          console.log('API response status:', response.status);
+          return response.data;
+        } catch (versionedError) {
+          console.error('Error with versioned API, trying legacy endpoint:', versionedError);
 
-        return response.data;
+          // If that fails, try the legacy endpoint
+          if (API_ENDPOINTS.LEGACY && API_ENDPOINTS.LEGACY.CAMPAIGNS) {
+            console.log('Trying legacy endpoint:', API_ENDPOINTS.LEGACY.CAMPAIGNS);
+            const legacyResponse = await axios.get(API_ENDPOINTS.LEGACY.CAMPAIGNS, { params });
+            return legacyResponse.data;
+          } else {
+            throw versionedError;
+          }
+        }
       } catch (error) {
         console.error('Error fetching campaigns:', error);
-        throw error.response?.data || error;
+        // Provide more detailed error information
+        const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+        console.error('Error details:', errorMessage);
+
+        // Return empty array instead of throwing to prevent UI errors
+        return [];
       }
     },
 

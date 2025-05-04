@@ -1,6 +1,7 @@
 const Campaign = require('../models/Campaign');
 const User = require('../models/User');
 const path = require('path');
+const { sequelize } = require('../config/database');
 
 exports.getAllCampaigns = async (req, res) => {
   try {
@@ -102,17 +103,43 @@ exports.createCampaign = async (req, res) => {
 
     console.log('Creating campaign with files:', files);
 
-    const campaign = await Campaign.create({
+    // Create campaign data object
+    const campaignData = {
       title,
       description,
       target: parseFloat(target),
       imageUrl,
       files,
-      documentUrl,
       category: category || 'General',
       endDate: endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       userId
-    });
+    };
+
+    // Only add documentUrl if it exists
+    if (documentUrl) {
+      try {
+        // Check if the document_url column exists in the database
+        const tableInfo = await sequelize.getQueryInterface().describeTable('campaigns');
+        if (tableInfo.document_url) {
+          campaignData.documentUrl = documentUrl;
+        } else {
+          console.log('Warning: document_url column does not exist in campaigns table. Storing PDF in files array instead.');
+          // If documentUrl doesn't exist in the database, store the PDF in the files array
+          if (documentUrl && Array.isArray(campaignData.files)) {
+            campaignData.files.push({
+              url: documentUrl,
+              name: 'Campaign Document.pdf',
+              type: 'application/pdf'
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error checking for document_url column:', error);
+        // If there's an error, don't include documentUrl
+      }
+    }
+
+    const campaign = await Campaign.create(campaignData);
 
     res.status(201).json({
       message: 'Campaign created successfully',
@@ -183,7 +210,28 @@ exports.updateCampaign = async (req, res) => {
       // Process the first PDF file if any
       if (pdfFiles.length > 0) {
         const pdfDocument = pdfFiles[0];
-        updateData.documentUrl = `/uploads/${pdfDocument.filename}`.replace(/\\/g, '/');
+        const pdfUrl = `/uploads/${pdfDocument.filename}`.replace(/\\/g, '/');
+
+        try {
+          // Check if the document_url column exists in the database
+          const tableInfo = await sequelize.getQueryInterface().describeTable('campaigns');
+          if (tableInfo.document_url) {
+            updateData.documentUrl = pdfUrl;
+          } else {
+            console.log('Warning: document_url column does not exist in campaigns table. Storing PDF in files array instead.');
+            // If documentUrl doesn't exist in the database, store the PDF in the files array
+            if (Array.isArray(updateData.files)) {
+              updateData.files.push({
+                url: pdfUrl,
+                name: pdfDocument.originalname || 'Campaign Document.pdf',
+                type: 'application/pdf'
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Error checking for document_url column:', error);
+          // If there's an error, don't include documentUrl
+        }
       }
     }
 

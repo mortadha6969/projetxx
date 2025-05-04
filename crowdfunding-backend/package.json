@@ -8,6 +8,7 @@
     "setup": "node src/utils/setup-database.js",
     "reset": "node src/utils/reset-database.js",
     "migrate": "node src/utils/run-migrations.js",
+    "add-document-url": "node src/scripts/run-migration.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

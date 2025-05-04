@@ -16,6 +16,7 @@ const CampaignList = () => {
     const fetchCampaigns = async () => {
       try {
         setLoading(true);
+        setError(null); // Reset error state
 
         // Prepare API parameters - only for category filtering
         const params = {};
@@ -24,6 +25,7 @@ const CampaignList = () => {
         }
 
         // Fetch campaigns from the API with category filter
+        console.log('Fetching campaigns with params:', params);
         const response = await apiService.campaigns.getAll(params);
         console.log('Fetched campaigns:', response);
 
@@ -31,12 +33,20 @@ const CampaignList = () => {
         // Check if we have campaigns data
         if (response && Array.isArray(response)) {
           campaignsData = response;
+          console.log('Using array response directly');
         } else if (response && Array.isArray(response.campaigns)) {
           campaignsData = response.campaigns;
+          console.log('Using campaigns property from response');
+        } else if (!response || Object.keys(response).length === 0) {
+          console.log('Empty response, using empty array');
+          campaignsData = [];
         } else {
           console.warn('Unexpected API response format:', response);
-          campaignsData = sampleCampaigns; // Fallback to sample data
+          // Use empty array instead of sample data for production
+          campaignsData = [];
         }
+
+        console.log('Final campaigns data:', campaignsData);
 
         // Store all campaigns - sorting will be handled by the sort useEffect
         setAllCampaigns(campaignsData);
@@ -45,21 +55,9 @@ const CampaignList = () => {
         console.error('Error fetching campaigns:', err);
         setError('Failed to load campaigns. Please try again later.');
 
-        // Fallback to sample data if API fails
-        let fallbackData = [...sampleCampaigns];
-
-        // Filter sample campaigns by category if needed
-        if (category !== 'all') {
-          fallbackData = fallbackData.filter(campaign =>
-            campaign.category === category
-          );
-        }
-
-        // Apply sorting to sample data - we need to define the function before using it
-        // This will be handled by the sort useEffect
-
-        setAllCampaigns(sampleCampaigns);
-        setCampaigns(fallbackData);
+        // Use empty arrays instead of sample data
+        setAllCampaigns([]);
+        setCampaigns([]);
       } finally {
         setLoading(false);
       }
@@ -157,12 +155,46 @@ const CampaignList = () => {
     return (
       <div className="text-center py-8">
         <p className="text-red-500 mb-4">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition duration-300"
-        >
-          Try Again
-        </button>
+        <div className="flex justify-center space-x-4">
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition duration-300"
+          >
+            Refresh Page
+          </button>
+          <button
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              setTimeout(() => {
+                const fetchCampaigns = async () => {
+                  try {
+                    const response = await apiService.campaigns.getAll();
+                    if (response && Array.isArray(response)) {
+                      setAllCampaigns(response);
+                      setCampaigns(response);
+                    } else if (response && Array.isArray(response.campaigns)) {
+                      setAllCampaigns(response.campaigns);
+                      setCampaigns(response.campaigns);
+                    } else {
+                      setAllCampaigns([]);
+                      setCampaigns([]);
+                    }
+                  } catch (err) {
+                    console.error('Error retrying campaign fetch:', err);
+                    setError('Failed to load campaigns. Please try refreshing the page.');
+                  } finally {
+                    setLoading(false);
+                  }
+                };
+                fetchCampaigns();
+              }, 1000);
+            }}
+            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition duration-300"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
