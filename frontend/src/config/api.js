@@ -69,6 +69,10 @@ export const API_ENDPOINTS = {
   USER_TRANSACTIONS: `${ACTIVE_API_URL}${API_PREFIX}/transactions/user`,
   CREATE_TRANSACTION: `${ACTIVE_API_URL}${API_PREFIX}/transactions`,
 
+  // Withdrawal endpoints
+  REQUEST_WITHDRAWAL: `${ACTIVE_API_URL}${API_PREFIX}/withdrawals/request`,
+  CHECK_WITHDRAWAL_ELIGIBILITY: (campaignId) => `${ACTIVE_API_URL}${API_PREFIX}/withdrawals/check/${campaignId}`,
+
   // Konnect payment endpoints
   KONNECT_INIT_PAYMENT: `${ACTIVE_API_URL}${API_PREFIX}/konnect/init-payment`,
   KONNECT_PAYMENT_DETAILS: (paymentRef) => `${ACTIVE_API_URL}${API_PREFIX}/konnect/payment/${paymentRef}`,

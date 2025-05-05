@@ -56,3 +56,37 @@
     white-space: nowrap;
   }
 }
+
+.withdraw-button {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  background-color: #10b981;
+  color: white;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.withdraw-button:hover {
+  background-color: #059669;
+}
+
+.withdraw-button:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.withdraw-progress {
+  margin-top: 4px;
+  width: 100%;
+  height: 4px;
+  background-color: #e5e7eb;
+  border-radius: 2px;
+}
+
+.withdraw-progress-bar {
+  height: 100%;
+  border-radius: 2px;
+  background-color: #10b981;
+}

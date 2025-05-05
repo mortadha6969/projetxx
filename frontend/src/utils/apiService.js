@@ -276,7 +276,15 @@ const apiService = {
         console.log('Fetching user campaigns from:', API_ENDPOINTS.USER_CAMPAIGNS);
         const response = await apiClient.get(API_ENDPOINTS.USER_CAMPAIGNS);
         console.log('User campaigns response:', response.data);
-        return response.data;
+
+        // Handle both old and new response formats
+        if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+          // New format: { campaigns: [...], totalRaised: number }
+          return response.data;
+        } else {
+          // Old format: just an array of campaigns
+          return response.data;
+        }
       } catch (error) {
         console.error('Error fetching user campaigns:', error);
         throw error.response?.data || error;
@@ -430,6 +438,33 @@ const apiService = {
         const response = await apiClient.post(API_ENDPOINTS.CREATE_TRANSACTION, transactionData);
         return response.data;
       } catch (error) {
+        throw error.response?.data || error;
+      }
+    },
+  },
+
+  // Konnect forwarding methods
+  withdrawals: {
+    requestForwardToKonnect: async (campaignId) => {
+      try {
+        console.log('Requesting to forward funds to Konnect for campaign:', campaignId);
+        const response = await apiClient.post(API_ENDPOINTS.REQUEST_WITHDRAWAL, { campaignId });
+        console.log('Forward to Konnect response:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Error requesting to forward funds to Konnect:', error);
+        throw error.response?.data || error;
+      }
+    },
+
+    checkForwardEligibility: async (campaignId) => {
+      try {
+        console.log('Checking eligibility to forward funds to Konnect for campaign:', campaignId);
+        const response = await apiClient.get(API_ENDPOINTS.CHECK_WITHDRAWAL_ELIGIBILITY(campaignId));
+        console.log('Eligibility response:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Error checking eligibility to forward funds to Konnect:', error);
         throw error.response?.data || error;
       }
     },

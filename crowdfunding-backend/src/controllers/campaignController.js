@@ -417,7 +417,15 @@ exports.getUserCampaigns = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    res.json(campaigns);
+    // Calculate total raised amount from all user campaigns
+    const totalRaised = campaigns.reduce((sum, campaign) => {
+      return sum + (parseFloat(campaign.donated) || 0);
+    }, 0);
+
+    res.json({
+      campaigns,
+      totalRaised
+    });
   } catch (error) {
     console.error('Error fetching user campaigns:', error);
     res.status(500).json({ message: error.message });

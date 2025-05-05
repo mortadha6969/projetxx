@@ -39,6 +39,7 @@ const transactionRoutes = require('./routes/transactionRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const debugAdminRoutes = require('./routes/debugAdminRoutes');
 const konnectRoutes = require('./routes/konnectRoutes');
+const withdrawalRoutes = require('./routes/withdrawalRoutes');
 
 // Health check endpoint
 app.get('/health-check', (req, res) => {
@@ -56,6 +57,7 @@ app.use('/campaigns', campaignRoutes);
 app.use('/transactions', transactionRoutes);
 app.use('/konnect', konnectRoutes);
 app.use('/admin', adminRoutes);
+app.use('/withdrawals', withdrawalRoutes);
 
 // Log deprecation warning for non-versioned routes
 app.use(['/users', '/campaigns', '/transactions', '/konnect', '/admin'], (req, res, next) => {
@@ -78,6 +80,7 @@ app.use(`${API_PREFIX}/campaigns`, campaignRoutes);
 app.use(`${API_PREFIX}/transactions`, transactionRoutes);
 app.use(`${API_PREFIX}/konnect`, konnectRoutes);
 app.use(`${API_PREFIX}/admin`, adminRoutes);
+app.use(`${API_PREFIX}/withdrawals`, withdrawalRoutes);
 
 // Debug admin routes (no authentication required)
 app.use('/debug-admin', debugAdminRoutes);
